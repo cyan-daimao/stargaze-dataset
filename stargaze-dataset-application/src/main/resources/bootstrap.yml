@@ -1,0 +1,27 @@
+spring:
+  profiles:
+    active: dev
+  application:
+    name: stargaze-dataset
+  main:
+    web-application-type: servlet
+  servlet:
+    multipart:
+      max-file-size: 200MB
+      max-request-size: 200MB
+  mvc:
+    async:
+      request-timeout: 300000
+
+# 服务监控端点
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    health:
+      show-details: always
+
+# 元数据库(PostgreSQL,内置 pgvector)连接由各 profile 覆盖
+# StarRocks 物化加速目标引擎连接由各 profile 覆盖

@@ -1,0 +1,49 @@
+spring:
+  config:
+    import:
+      - "nacos:arch-base.yaml?group=DEFAULT_GROUP&namespace=dev"
+      - "nacos:stargaze-dataset.yaml?group=DEFAULT_GROUP&namespace=dev"
+  cloud:
+    nacos:
+      server-addr: 10.0.0.2:8848
+      username: nacos
+      password: nacos
+      config:
+        file-extension: yaml
+        namespace: dev
+      discovery:
+        ephemeral: true
+        namespace: dev
+  # 元数据库 PostgreSQL(观星元数据 + pgvector 向量)
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://10.0.0.2:5432/stargaze?currentSchema=public
+    username: postgres
+    password: 123456
+  # MyBatis-Plus
+  data:
+    redis:
+      host: 10.0.0.2
+      port: 6379
+
+# StarRocks 物化加速目标引擎(JDBC 兼容 MySQL 协议)
+starrocks:
+  url: jdbc:mysql://10.0.0.2:32132/?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+  username: root
+  password: 123456
+
+# 数据源连接密码 AES-256-GCM 加密密钥(KMS 托管,私有化部署可环境变量覆盖)
+dataset:
+  crypto:
+    aes-key: ${DATASET_CRYPTO_AES_KEY:stargaze-dataset-aes-key}
+
+# MinIO 文件存储(Excel/CSV 上传)
+minio:
+  endpoint: http://10.0.0.2:9000
+  access-key: minioadmin
+  secret-key: minioadmin
+  bucket: stargaze-dataset
+
+# 元数据刷新调度(每日凌晨自动同步结构变更)
+dataset-refresh:
+  cron: "0 30 1 * * ?"

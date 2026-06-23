@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.cyan</groupId>
+        <artifactId>stargaze-dataset</artifactId>
+        <version>1.0-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+
+    <artifactId>stargaze-dataset-application</artifactId>
+    <description>数据集平台实现:adapter/application/domain/infra 四层 + 启动类</description>
+
+    <dependencies>
+        <!-- 本服务客户端契约(Controller 实现 Feign 接口) -->
+        <dependency>
+            <groupId>com.cyan</groupId>
+            <artifactId>stargaze-dataset-client</artifactId>
+        </dependency>
+
+        <!-- 公司基座 -->
+        <dependency>
+            <groupId>com.cyan</groupId>
+            <artifactId>arch-base</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.cyan</groupId>
+            <artifactId>cyan-employee-login</artifactId>
+        </dependency>
+
+        <!-- ORM -->
+        <dependency>
+            <groupId>com.baomidou</groupId>
+            <artifactId>mybatis-plus-spring-boot3-starter</artifactId>
+        </dependency>
+        <!-- 元数据库 PostgreSQL 驱动 -->
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+        <!-- 数据源适配器:MySQL/StarRocks/Doris 共用 MySQL 协议驱动 -->
+        <dependency>
+            <groupId>com.mysql</groupId>
+            <artifactId>mysql-connector-j</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+        <!-- 数据源适配器:ClickHouse 驱动 -->
+        <dependency>
+            <groupId>com.clickhouse</groupId>
+            <artifactId>clickhouse-jdbc</artifactId>
+            <version>0.6.4</version>
+            <scope>runtime</scope>
+        </dependency>
+
+        <!-- 对象转换 -->
+        <dependency>
+            <groupId>org.mapstruct</groupId>
+            <artifactId>mapstruct</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+        </dependency>
+
+        <!-- JSON 解析(fastjson2) -->
+        <dependency>
+            <groupId>com.alibaba.fastjson2</groupId>
+            <artifactId>fastjson2</artifactId>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <finalName>stargaze-dataset</finalName>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <version>3.3.13</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>repackage</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <mainClass>com.cyan.stargaze.dataset.Application</mainClass>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>
