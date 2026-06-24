@@ -14,7 +14,7 @@ import lombok.experimental.Accessors;
  * 执行所需的 objectKey/headerRow 由 fileId 关联 {@code DatasetFile} 查得,不入本配置。
  *
  * <pre>
- * { "file_id": "123", "file_name": "Q2.xlsx", "sheet_name": "Sheet1", "update_mode": "OVERWRITE" }
+ * { "fileId": "123", "fileName": "Q2.xlsx", "sheetName": "Sheet1", "updateMode": "OVERWRITE" }
  * </pre>
  *
  * @author cy.Y

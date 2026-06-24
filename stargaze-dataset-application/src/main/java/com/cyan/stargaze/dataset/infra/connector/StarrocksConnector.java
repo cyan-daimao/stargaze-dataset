@@ -19,6 +19,11 @@ public class StarrocksConnector extends AbstractJdbcConnector {
     }
 
     @Override
+    public boolean supportsSchema() {
+        return false;
+    }
+
+    @Override
     protected String driverClassName() {
         return "com.mysql.cj.jdbc.Driver";
     }

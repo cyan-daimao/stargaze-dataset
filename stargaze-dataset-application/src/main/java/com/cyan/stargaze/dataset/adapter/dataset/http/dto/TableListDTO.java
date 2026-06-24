@@ -19,6 +19,8 @@ import java.util.List;
 @Accessors(chain = true)
 public class TableListDTO {
 
+    /** 该数据源是否支持独立的 schema 层(false 表示连接已指向具体库,tables 直接返回该库下所有表) */
+    private Boolean schemaSupported;
     private List<String> schemas;
     private List<TableMetaDTO> tables;
 }

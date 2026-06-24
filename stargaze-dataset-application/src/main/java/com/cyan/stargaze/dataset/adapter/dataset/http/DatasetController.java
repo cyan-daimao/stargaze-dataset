@@ -20,6 +20,7 @@ import com.cyan.stargaze.dataset.adapter.dataset.http.dto.TableFieldsDTO;
 import com.cyan.stargaze.dataset.adapter.dataset.http.dto.TableListDTO;
 import com.cyan.stargaze.dataset.adapter.datasource.http.dto.DatabaseDTO;
 import com.cyan.stargaze.dataset.adapter.datasource.http.convert.DatasourceAdapterConvert;
+import com.cyan.stargaze.dataset.application.datasource.bo.DatasourceBO;
 import com.cyan.stargaze.dataset.application.dataset.DatasetFileService;
 import com.cyan.stargaze.dataset.application.dataset.DatasetHierarchyService;
 import com.cyan.stargaze.dataset.application.dataset.DatasetParameterService;
@@ -162,12 +163,25 @@ public class DatasetController {
     public Response<TableListDTO> listTables(@RequestParam("datasource_id") String datasourceId,
                                              @RequestParam(value = "schema", required = false) String schema,
                                              @RequestParam(value = "keyword", required = false) String keyword) {
-        List<String> schemas = Optional.ofNullable(datasourceService.listSchemas(datasourceId)).orElse(List.of())
-                .stream().map(DatasourceAdapterConvert.INSTANCE::toDatabaseDTO)
-                .map(DatabaseDTO::getName).toList();
+        boolean supportsSchema = datasourceService.supportsSchema(datasourceId);
+        List<String> schemas;
+        String effectiveSchema = schema;
+        if (supportsSchema) {
+            schemas = Optional.ofNullable(datasourceService.listSchemas(datasourceId)).orElse(List.of())
+                    .stream().map(DatasourceAdapterConvert.INSTANCE::toDatabaseDTO)
+                    .map(DatabaseDTO::getName).toList();
+        } else {
+            // MySQL/StarRocks/Doris/ClickHouse 等库级数据源:连接已指向具体 database,无需再选 schema
+            schemas = List.of();
+            if (effectiveSchema == null || effectiveSchema.isBlank()) {
+                DatasourceBO ds = datasourceService.findById(datasourceId);
+                effectiveSchema = ds.getConfig() == null ? null : ds.getConfig().getDatabase();
+            }
+        }
         List<com.cyan.stargaze.dataset.domain.datasource.valobj.TableMetaValObj> tables =
-                datasourceService.listTablesRich(datasourceId, schema, keyword);
+                datasourceService.listTablesRich(datasourceId, effectiveSchema, keyword);
         TableListDTO dto = new TableListDTO()
+                .setSchemaSupported(supportsSchema)
                 .setSchemas(schemas)
                 .setTables(DatasetAdapterConvert.INSTANCE.toTableMetaDTOList(tables));
         return Response.success(dto);

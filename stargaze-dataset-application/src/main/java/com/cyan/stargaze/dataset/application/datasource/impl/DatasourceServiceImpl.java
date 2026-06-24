@@ -91,6 +91,13 @@ public class DatasourceServiceImpl implements DatasourceService {
     }
 
     @Override
+    public boolean supportsSchema(String id) {
+        DataSource dataSource = dataSourceRepository.findById(id);
+        Assert.notNull(dataSource, new SilentException("数据源不存在"));
+        return connectorFactory.get(dataSource.getType()).supportsSchema();
+    }
+
+    @Override
     public List<DatabaseValObj> listSchemas(String id) {
         DataSource dataSource = dataSourceRepository.findById(id);
         Assert.notNull(dataSource, new SilentException("数据源不存在"));

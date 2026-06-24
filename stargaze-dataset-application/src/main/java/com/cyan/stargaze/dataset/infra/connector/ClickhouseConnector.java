@@ -19,6 +19,11 @@ public class ClickhouseConnector extends AbstractJdbcConnector {
     }
 
     @Override
+    public boolean supportsSchema() {
+        return false;
+    }
+
+    @Override
     protected String driverClassName() {
         return "com.clickhouse.jdbc.ClickHouseDriver";
     }

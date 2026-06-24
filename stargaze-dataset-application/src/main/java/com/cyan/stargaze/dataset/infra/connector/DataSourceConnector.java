@@ -21,6 +21,16 @@ public interface DataSourceConnector {
     DatasourceType supportType();
 
     /**
+     * 是否支持独立的 schema 层。
+     * <p>
+     * true: 连接配置指向 database,其下仍有多个 schema(如 PostgreSQL),需要先从 {@link #listSchemas} 选 schema 再列表。
+     * false: 连接配置直接指向 database/schema(如 MySQL/StarRocks/Doris/ClickHouse),不需要再选 schema,直接列出该库下的表。
+     */
+    default boolean supportsSchema() {
+        return true;
+    }
+
+    /**
      * 测试连接(连通性 + 查询权限)
      */
     void testConnection(DataSourceConfig config);

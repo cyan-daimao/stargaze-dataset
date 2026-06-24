@@ -11,7 +11,7 @@ import lombok.experimental.Accessors;
  * 数据库表数据集配置。
  *
  * <pre>
- * { "schema": "dwd", "table_name": "dwd_trade_order" }
+ * { "schema": "dwd", "tableName": "dwd_trade_order" }
  * </pre>
  *
  * @author cy.Y

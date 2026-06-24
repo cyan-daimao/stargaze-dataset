@@ -48,6 +48,11 @@ public interface DatasourceService {
     void testConnection(String id);
 
     /**
+     * 当前数据源是否支持独立的 schema 层。
+     */
+    boolean supportsSchema(String id);
+
+    /**
      * 探查:列出库/schema
      */
     List<DatabaseValObj> listSchemas(String id);

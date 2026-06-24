@@ -14,10 +14,10 @@ import java.util.List;
  *
  * <pre>
  * {
- *   "main_table": { "schema": "dwd", "table_name": "dwd_trade_order" },
+ *   "mainTable": { "schema": "dwd", "tableName": "dwd_trade_order" },
  *   "joins": [
- *     { "join_type": "LEFT_JOIN", "table": { "schema": "dim", "table_name": "dim_product" },
- *       "conditions": [ { "left_field": "product_id", "right_field": "product_id", "operator": "=" } ] }
+ *     { "joinType": "LEFT_JOIN", "table": { "schema": "dim", "tableName": "dim_product" },
+ *       "conditions": [ { "leftField": "product_id", "rightField": "product_id", "operator": "=" } ] }
  *   ]
  * }
  * </pre>
