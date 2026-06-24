@@ -10,6 +10,7 @@ import com.cyan.stargaze.dataset.domain.datasource.DataSource;
 import com.cyan.stargaze.dataset.domain.datasource.query.DataSourceListQuery;
 import com.cyan.stargaze.dataset.domain.datasource.repository.DataSourceRepository;
 import com.cyan.stargaze.dataset.domain.datasource.valobj.DatabaseValObj;
+import com.cyan.stargaze.dataset.domain.datasource.valobj.TableMetaValObj;
 import com.cyan.stargaze.dataset.domain.datasource.valobj.TableSampleValObj;
 import com.cyan.stargaze.dataset.domain.datasource.valobj.TableSchemaValObj;
 import com.cyan.stargaze.dataset.infra.connector.DataSourceConnector;
@@ -105,6 +106,14 @@ public class DatasourceServiceImpl implements DatasourceService {
         Assert.notNull(dataSource, new SilentException("数据源不存在"));
         DataSourceConnector connector = connectorFactory.get(dataSource.getType());
         return connector.listTables(dataSource.getConfig(), schema);
+    }
+
+    @Override
+    public List<TableMetaValObj> listTablesRich(String id, String schema, String keyword) {
+        DataSource dataSource = dataSourceRepository.findById(id);
+        Assert.notNull(dataSource, new SilentException("数据源不存在"));
+        DataSourceConnector connector = connectorFactory.get(dataSource.getType());
+        return connector.listTablesRich(dataSource.getConfig(), schema, keyword);
     }
 
     @Override

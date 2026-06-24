@@ -19,6 +19,11 @@ public interface DataSourceRepository {
     DataSource findById(String id);
 
     /**
+     * 批量根据 ID 查询(列表组装 datasource_name 用)
+     */
+    List<DataSource> findByIds(List<String> ids);
+
+    /**
      * 列表查询
      */
     List<DataSource> list(DataSourceListQuery query);

@@ -5,8 +5,8 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.cyan.stargaze.dataset.enums.CommonStatus;
 import com.cyan.stargaze.dataset.enums.DatasetSourceType;
+import com.cyan.stargaze.dataset.enums.DatasetStatus;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -39,6 +39,10 @@ public class DatasetDO {
     @TableField("name")
     private String name;
 
+    /** 描述 */
+    @TableField("description")
+    private String description;
+
     /** 来源类型(table/sql/join/excel/union) */
     @TableField("source_type")
     private DatasetSourceType sourceType;
@@ -61,7 +65,7 @@ public class DatasetDO {
 
     /** 状态 */
     @TableField("status")
-    private CommonStatus status;
+    private DatasetStatus status;
 
     /** 版本号 */
     @TableField("version")

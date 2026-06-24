@@ -1,6 +1,10 @@
 package com.cyan.stargaze.dataset.infra.persistence.dataset.repository;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.cyan.arch.common.api.Assert;
+import com.cyan.arch.common.api.SilentException;
 import com.cyan.stargaze.dataset.domain.dataset.Dataset;
 import com.cyan.stargaze.dataset.domain.dataset.DatasetField;
 import com.cyan.stargaze.dataset.domain.dataset.query.DatasetListQuery;
@@ -55,28 +59,34 @@ public class DatasetRepositoryImpl implements DatasetRepository {
     }
 
     @Override
-    public List<Dataset> list(DatasetListQuery query) {
+    public com.cyan.arch.common.api.Page<Dataset> page(DatasetListQuery query) {
         query = query == null ? new DatasetListQuery() : query;
+        int current = query.getPage() == null || query.getPage() < 1 ? 1 : query.getPage();
+        int size = query.getSize() == null || query.getSize() < 1 ? 20 : query.getSize();
         LambdaQueryWrapper<DatasetDO> wrapper = new LambdaQueryWrapper<DatasetDO>()
                 .eq(StringUtils.isNotBlank(query.getWorkspaceId()),
                         DatasetDO::getWorkspaceId, IdUtil.toLong(query.getWorkspaceId()))
-                .like(StringUtils.isNotBlank(query.getName()),
-                        DatasetDO::getName, query.getName())
+                .like(StringUtils.isNotBlank(query.getKeyword()),
+                        DatasetDO::getName, query.getKeyword())
                 .eq(query.getSourceType() != null, DatasetDO::getSourceType, query.getSourceType())
-                .eq(StringUtils.isNotBlank(query.getDataSourceId()),
-                        DatasetDO::getDataSourceId, IdUtil.toLong(query.getDataSourceId()))
+                .eq(query.getStatus() != null, DatasetDO::getStatus, query.getStatus())
                 .orderByDesc(DatasetDO::getCreatedAt);
-        List<DatasetDO> list = datasetMapper.selectList(wrapper);
-        return Optional.ofNullable(list).orElse(List.of()).stream()
+        IPage<DatasetDO> page = datasetMapper.selectPage(new Page<>(current, size), wrapper);
+        List<Dataset> data = Optional.ofNullable(page.getRecords()).orElse(List.of()).stream()
                 .map(convert::toDataset)
                 .toList();
+        return new com.cyan.arch.common.api.Page<>(data, page.getCurrent(), page.getSize(), page.getTotal());
     }
 
     @Override
     public Dataset findByName(String workspaceId, String name) {
+        Assert.notBlank(name, new SilentException("数据集名称不能为空"));
         LambdaQueryWrapper<DatasetDO> wrapper = new LambdaQueryWrapper<DatasetDO>()
-                .eq(DatasetDO::getWorkspaceId, IdUtil.toLong(workspaceId))
                 .eq(DatasetDO::getName, name);
+        // workspaceId 非空时按空间唯一,否则全局唯一
+        if (StringUtils.isNotBlank(workspaceId)) {
+            wrapper.eq(DatasetDO::getWorkspaceId, IdUtil.toLong(workspaceId));
+        }
         DatasetDO datasetDO = datasetMapper.selectOne(wrapper);
         return datasetDO == null ? null : convert.toDataset(datasetDO);
     }

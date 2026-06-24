@@ -58,6 +58,12 @@ public interface DatasourceService {
     List<String> listTables(String id, String schema);
 
     /**
+     * 探查:富列出表(含表注释/字段数/行数)
+     */
+    List<com.cyan.stargaze.dataset.domain.datasource.valobj.TableMetaValObj> listTablesRich(
+            String id, String schema, String keyword);
+
+    /**
      * 探查:表结构
      */
     TableSchemaValObj describeTable(String id, String schema, String tableName);

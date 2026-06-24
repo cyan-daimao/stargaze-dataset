@@ -38,6 +38,21 @@ public class DataSourceRepositoryImpl implements DataSourceRepository {
     }
 
     @Override
+    public List<DataSource> findByIds(List<String> ids) {
+        if (ids == null || ids.isEmpty()) {
+            return List.of();
+        }
+        List<Long> longIds = ids.stream().map(IdUtil::toLong).filter(java.util.Objects::nonNull).toList();
+        if (longIds.isEmpty()) {
+            return List.of();
+        }
+        List<DataSourceDO> list = dataSourceMapper.selectBatchIds(longIds);
+        return java.util.Optional.ofNullable(list).orElse(java.util.List.of()).stream()
+                .map(convert::toDataSource)
+                .toList();
+    }
+
+    @Override
     public List<DataSource> list(DataSourceListQuery query) {
         query = query == null ? new DataSourceListQuery() : query;
         LambdaQueryWrapper<DataSourceDO> wrapper = new LambdaQueryWrapper<DataSourceDO>()

@@ -2,8 +2,9 @@ package com.cyan.stargaze.dataset.domain.dataset;
 
 import com.cyan.arch.common.api.Assert;
 import com.cyan.arch.common.api.SilentException;
-import com.cyan.stargaze.dataset.enums.DataType;
+import com.cyan.stargaze.dataset.enums.Aggregation;
 import com.cyan.stargaze.dataset.enums.FieldType;
+import com.cyan.stargaze.dataset.infra.util.DataTypeInferrer;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -35,26 +36,35 @@ public class DatasetField {
     /** 物理字段名(源表真实列名) */
     private String originName;
 
-    /** 字段别名 */
+    /** 字段别名(SQL 选择别名,JOIN 编译自动生成) */
     private String alias;
+
+    /** 显示名称(用户可见标签) */
+    private String displayName;
 
     /** 字段类型(dimension/measure) */
     private FieldType fieldType;
 
-    /** 数据类型(string/int/decimal/date/datetime/boolean) */
-    private DataType dataType;
+    /** 数据类型(原始 DB 类型串,如 BIGINT/VARCHAR/DECIMAL(18,2)) */
+    private String dataType;
 
-    /** 基础语义标注(geo/time/category,jsonb 序列化字符串,可空) */
+    /** 聚合方式(度量字段,可空) */
+    private Aggregation aggregation;
+
+    /** 来源表名(多表关联时,可空) */
+    private String sourceTable;
+
+    /** 是否启用 */
+    private Boolean isEnabled;
+
+    /** 基础语义标注(jsonb 序列化字符串,可空) */
     private String semanticType;
 
-    /** 格式(数字/日期,jsonb 序列化字符串,可空) */
+    /** 格式(jsonb 序列化字符串,可空) */
     private String format;
 
     /** 字典 ID */
     private String dictionaryId;
-
-    /** 是否隐藏 */
-    private Boolean hidden;
 
     /** 排序序号 */
     private Integer ord;
@@ -74,7 +84,7 @@ public class DatasetField {
     public void validate() {
         Assert.notBlank(this.originName, new SilentException("字段物理名不能为空"));
         Assert.notNull(this.fieldType, new SilentException("字段类型不能为空"));
-        Assert.notNull(this.dataType, new SilentException("字段数据类型不能为空"));
+        Assert.notBlank(this.dataType, new SilentException("字段数据类型不能为空"));
     }
 
     /**
@@ -89,5 +99,12 @@ public class DatasetField {
      */
     public boolean isMeasure() {
         return FieldType.MEASURE == this.fieldType;
+    }
+
+    /**
+     * 推断逻辑数据类型(供 RPC 契约返回 DataType 枚举)。
+     */
+    public com.cyan.stargaze.dataset.enums.DataType logicalDataType() {
+        return DataTypeInferrer.infer(this.dataType);
     }
 }

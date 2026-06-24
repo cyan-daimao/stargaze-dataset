@@ -1,9 +1,8 @@
 package com.cyan.stargaze.dataset.domain.dataset.repository;
 
+import com.cyan.arch.common.api.Page;
 import com.cyan.stargaze.dataset.domain.dataset.Dataset;
 import com.cyan.stargaze.dataset.domain.dataset.query.DatasetListQuery;
-
-import java.util.List;
 
 /**
  * 数据集仓储接口(聚合根,字段随主表一起持久化)。
@@ -19,12 +18,12 @@ public interface DatasetRepository {
     Dataset findById(String id);
 
     /**
-     * 列表查询(不含字段明细)
+     * 分页查询(不含字段明细)
      */
-    List<Dataset> list(DatasetListQuery query);
+    Page<Dataset> page(DatasetListQuery query);
 
     /**
-     * 按空间+名称查询(唯一性校验)
+     * 按空间+名称查询(唯一性校验;workspaceId 为空时全局唯一)
      */
     Dataset findByName(String workspaceId, String name);
 

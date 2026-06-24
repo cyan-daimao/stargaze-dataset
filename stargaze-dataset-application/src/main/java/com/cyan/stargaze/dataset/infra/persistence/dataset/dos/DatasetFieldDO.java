@@ -5,7 +5,7 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.cyan.stargaze.dataset.enums.DataType;
+import com.cyan.stargaze.dataset.enums.Aggregation;
 import com.cyan.stargaze.dataset.enums.FieldType;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -39,17 +39,33 @@ public class DatasetFieldDO {
     @TableField("origin_name")
     private String originName;
 
-    /** 字段别名 */
+    /** 字段别名(SQL 选择别名) */
     @TableField("alias")
     private String alias;
+
+    /** 显示名称 */
+    @TableField("display_name")
+    private String displayName;
 
     /** 字段类型(dimension/measure) */
     @TableField("field_type")
     private FieldType fieldType;
 
-    /** 数据类型 */
+    /** 数据类型(原始 DB 类型串) */
     @TableField("data_type")
-    private DataType dataType;
+    private String dataType;
+
+    /** 聚合方式(度量字段) */
+    @TableField("aggregation")
+    private Aggregation aggregation;
+
+    /** 来源表名 */
+    @TableField("source_table")
+    private String sourceTable;
+
+    /** 是否启用 */
+    @TableField("is_enabled")
+    private Boolean isEnabled;
 
     /** 基础语义标注(jsonb) */
     @TableField("semantic_type")
@@ -63,7 +79,7 @@ public class DatasetFieldDO {
     @TableField("dictionary_id")
     private Long dictionaryId;
 
-    /** 是否隐藏 */
+    /** 是否隐藏(旧字段,兼容保留;与 is_enabled 互为反值) */
     @TableField("hidden")
     private Boolean hidden;
 

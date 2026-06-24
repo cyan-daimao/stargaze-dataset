@@ -1,6 +1,6 @@
 package com.cyan.stargaze.dataset.application.dataset.bo;
 
-import com.cyan.stargaze.dataset.enums.DataType;
+import com.cyan.stargaze.dataset.enums.Aggregation;
 import com.cyan.stargaze.dataset.enums.FieldType;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -26,29 +26,26 @@ public class DatasetFieldBO {
     private String datasetId;
 
     /** 物理字段名 */
-    private String originName;
+    private String fieldName;
 
-    /** 字段别名 */
-    private String alias;
+    /** 显示名称 */
+    private String displayName;
 
     /** 字段类型(dimension/measure) */
     private FieldType fieldType;
 
-    /** 数据类型 */
-    private DataType dataType;
+    /** 数据类型(原始 DB 类型串) */
+    private String dataType;
 
-    /** 基础语义标注(jsonb 字符串) */
-    private String semanticType;
+    /** 聚合方式 */
+    private Aggregation aggregation;
 
-    /** 格式(jsonb 字符串) */
-    private String format;
+    /** 来源表名 */
+    private String sourceTable;
 
-    /** 字典 ID */
-    private String dictionaryId;
-
-    /** 是否隐藏 */
-    private Boolean hidden;
+    /** 是否启用 */
+    private Boolean isEnabled;
 
     /** 排序序号 */
-    private Integer ord;
+    private Integer sortOrder;
 }

@@ -1,13 +1,14 @@
 package com.cyan.stargaze.dataset.domain.dataset.query;
 
 import com.cyan.stargaze.dataset.enums.DatasetSourceType;
+import com.cyan.stargaze.dataset.enums.DatasetStatus;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 
 /**
- * 数据集列表查询条件。
+ * 数据集列表分页查询条件。
  *
  * @author cy.Y
  * @since 1.0.0
@@ -18,15 +19,21 @@ import lombok.experimental.Accessors;
 @Accessors(chain = true)
 public class DatasetListQuery {
 
-    /** 空间 ID */
-    private String workspaceId;
+    /** 页码(1 起始) */
+    private Integer page;
 
-    /** 名称(模糊) */
-    private String name;
+    /** 每页条数 */
+    private Integer size;
+
+    /** 名称关键词(模糊) */
+    private String keyword;
 
     /** 来源类型 */
     private DatasetSourceType sourceType;
 
-    /** 数据源 ID */
-    private String dataSourceId;
+    /** 状态 */
+    private DatasetStatus status;
+
+    /** 空间 ID(可空) */
+    private String workspaceId;
 }

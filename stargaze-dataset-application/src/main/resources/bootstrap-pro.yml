@@ -36,6 +36,18 @@ starrocks:
 dataset:
   crypto:
     aes-key: ${DATASET_CRYPTO_AES_KEY:stargaze-dataset-aes-key}
+  # SQL 数据集执行配置(超时/行数上限)
+  sql:
+    query-timeout-seconds: 30
+    max-sample-rows: 1000
+    max-preview-rows: 500
+  # Excel 文件解析配置(大小/行列/采样上限)
+  excel:
+    max-file-size: 52428800
+    max-rows: 100000
+    max-columns: 500
+    sample-rows: 100
+    infer-rows: 100
 
 # S3 文件存储(Excel/CSV 上传,rustfs S3 兼容协议)
 s3:

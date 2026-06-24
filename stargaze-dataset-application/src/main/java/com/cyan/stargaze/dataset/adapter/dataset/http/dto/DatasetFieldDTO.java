@@ -1,6 +1,6 @@
 package com.cyan.stargaze.dataset.adapter.dataset.http.dto;
 
-import com.cyan.stargaze.dataset.enums.DataType;
+import com.cyan.stargaze.dataset.enums.Aggregation;
 import com.cyan.stargaze.dataset.enums.FieldType;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 
 /**
- * 数据集字段 DTO(返回前端)。
+ * 数据集字段 DTO(前端字段名)。
  *
  * @author cy.Y
  * @since 1.0.0
@@ -19,36 +19,30 @@ import lombok.experimental.Accessors;
 @Accessors(chain = true)
 public class DatasetFieldDTO {
 
-    /** 主键 */
+    /** 字段 ID */
     private String id;
 
-    /** 所属数据集 ID */
-    private String datasetId;
-
     /** 物理字段名 */
-    private String originName;
+    private String fieldName;
 
-    /** 字段别名 */
-    private String alias;
+    /** 显示名称 */
+    private String displayName;
 
-    /** 字段类型 */
+    /** 数据类型(原始 DB 类型串) */
+    private String dataType;
+
+    /** 字段类型(维度/度量) */
     private FieldType fieldType;
 
-    /** 数据类型 */
-    private DataType dataType;
+    /** 聚合方式 */
+    private Aggregation aggregation;
 
-    /** 基础语义标注(jsonb 字符串) */
-    private String semanticType;
+    /** 是否启用 */
+    private Boolean isEnabled;
 
-    /** 格式(jsonb 字符串) */
-    private String format;
-
-    /** 字典 ID */
-    private String dictionaryId;
-
-    /** 是否隐藏 */
-    private Boolean hidden;
+    /** 来源表名 */
+    private String sourceTable;
 
     /** 排序序号 */
-    private Integer ord;
+    private Integer sortOrder;
 }

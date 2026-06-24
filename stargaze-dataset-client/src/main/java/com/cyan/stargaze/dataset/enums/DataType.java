@@ -32,4 +32,18 @@ public enum DataType {
     private final String code;
     /** 展示名称 */
     private final String displayName;
+
+    /**
+     * 映射为前端展示用的数据库类型名(BIGINT/VARCHAR 等)。
+     */
+    public String toDisplayType() {
+        return switch (this) {
+            case STRING -> "VARCHAR";
+            case INT -> "INT";
+            case DECIMAL -> "DECIMAL";
+            case DATE -> "DATE";
+            case DATETIME -> "DATETIME";
+            case BOOLEAN -> "BOOLEAN";
+        };
+    }
 }

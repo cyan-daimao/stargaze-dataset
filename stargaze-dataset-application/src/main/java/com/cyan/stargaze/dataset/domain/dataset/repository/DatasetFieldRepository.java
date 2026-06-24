@@ -1,6 +1,7 @@
 package com.cyan.stargaze.dataset.domain.dataset.repository;
 
 import com.cyan.stargaze.dataset.domain.dataset.DatasetField;
+import com.cyan.stargaze.dataset.domain.dataset.valobj.FieldCountStat;
 
 import java.util.List;
 
@@ -21,6 +22,11 @@ public interface DatasetFieldRepository {
      * 查询数据集全部字段(按 ord 排序)
      */
     List<DatasetField> listByDatasetId(String datasetId);
+
+    /**
+     * 批量统计多个数据集的字段数(总数/维度数/度量数)
+     */
+    List<FieldCountStat> countByDatasetIds(List<String> datasetIds);
 
     /**
      * 批量保存(重建数据集字段)

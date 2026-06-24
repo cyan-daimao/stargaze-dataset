@@ -27,10 +27,26 @@
         <mybatis-plus.version>3.5.7</mybatis-plus.version>
         <mapstruct.version>1.5.5.Final</mapstruct.version>
         <lombok.version>1.18.42</lombok.version>
+        <poi.version>5.2.5</poi.version>
+        <aws.sdk.version>2.25.30</aws.sdk.version>
     </properties>
 
     <dependencyManagement>
         <dependencies>
+            <!-- AWS SDK v2 BOM(S3 兼容对象存储 rustfs/MinIO) -->
+            <dependency>
+                <groupId>software.amazon.awssdk</groupId>
+                <artifactId>bom</artifactId>
+                <version>${aws.sdk.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <!-- Excel 解析 -->
+            <dependency>
+                <groupId>org.apache.poi</groupId>
+                <artifactId>poi-ooxml</artifactId>
+                <version>${poi.version}</version>
+            </dependency>
             <dependency>
                 <groupId>com.cyan</groupId>
                 <artifactId>arch-common</artifactId>

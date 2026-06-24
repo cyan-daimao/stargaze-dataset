@@ -3,15 +3,19 @@ package com.cyan.stargaze.dataset.domain.dataset;
 import com.cyan.arch.common.api.Assert;
 import com.cyan.arch.common.api.SilentException;
 import com.cyan.stargaze.dataset.domain.dataset.repository.DatasetRepository;
-import com.cyan.stargaze.dataset.enums.CommonStatus;
 import com.cyan.stargaze.dataset.enums.DatasetSourceType;
+import com.cyan.stargaze.dataset.enums.DatasetStatus;
+import com.cyan.stargaze.dataset.enums.FieldType;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 数据集领域对象(充血模型,聚合字段列表)。
@@ -30,11 +34,14 @@ public class Dataset {
     /** 主键 */
     private String id;
 
-    /** 所属空间 ID */
+    /** 所属空间 ID(可空,前端契约不使用 workspace 概念) */
     private String workspaceId;
 
-    /** 数据集名称(空间内唯一) */
+    /** 数据集名称(workspaceId 非空时空间内唯一,否则全局唯一) */
     private String name;
+
+    /** 描述 */
+    private String description;
 
     /** 来源类型(table/sql/join/excel/union) */
     private DatasetSourceType sourceType;
@@ -42,7 +49,7 @@ public class Dataset {
     /** 关联数据源 ID */
     private String dataSourceId;
 
-    /** 来源定义(表名/SQL/JOIN 图/文件引用,jsonb 序列化字符串) */
+    /** 来源配置(table/sql/join/excel config,jsonb 序列化字符串) */
     private String definition;
 
     /** 元数据刷新策略(jsonb 序列化字符串) */
@@ -51,8 +58,8 @@ public class Dataset {
     /** 物化加速配置(jsonb 序列化字符串) */
     private String accelerations;
 
-    /** 状态:active/error/inactive */
-    private CommonStatus status;
+    /** 状态:draft/published/archived */
+    private DatasetStatus status;
 
     /** 版本号 */
     private Integer version;
@@ -79,10 +86,9 @@ public class Dataset {
      * 校验
      */
     private void validate() {
-        Assert.notBlank(this.workspaceId, new SilentException("空间 ID 不能为空"));
         Assert.notBlank(this.name, new SilentException("数据集名称不能为空"));
         Assert.notNull(this.sourceType, new SilentException("数据集来源类型不能为空"));
-        Assert.notBlank(this.definition, new SilentException("数据集来源定义不能为空"));
+        Assert.notBlank(this.definition, new SilentException("数据集配置不能为空"));
     }
 
     /**
@@ -92,11 +98,10 @@ public class Dataset {
         validate();
         Dataset existing = repository.findByName(this.workspaceId, this.name);
         Assert.isNull(existing, new SilentException("数据集名称已存在"));
-        // 字段逐一校验
         if (fields != null) {
             fields.forEach(DatasetField::validate);
         }
-        this.status = CommonStatus.ACTIVE;
+        this.status = DatasetStatus.PUBLISHED;
         this.version = 1;
         this.createdAt = OffsetDateTime.now();
         this.updatedAt = OffsetDateTime.now();
@@ -123,5 +128,58 @@ public class Dataset {
     public void delete(DatasetRepository repository) {
         Assert.notBlank(this.id, new SilentException("数据集 ID 不能为空"));
         repository.deleteById(this.id);
+    }
+
+    /**
+     * 刷新字段合并:按 originName 匹配,命中保留旧配置仅刷新 dataType/sourceTable,新增追加 ord,删除丢弃。
+     * <p>
+     * 保持 ord/alias/displayName/isEnabled/aggregation 等用户配置稳定,避免前端展示抖动。
+     *
+     * @param existing 既有字段
+     * @param fresh    源端最新解析字段(含 originName/dataType/sourceTable)
+     * @return 合并后的字段列表
+     */
+    public List<DatasetField> rebuildFields(List<DatasetField> existing, List<DatasetField> fresh) {
+        Map<String, DatasetField> oldByOrigin = new LinkedHashMap<>();
+        if (existing != null) {
+            for (DatasetField f : existing) {
+                oldByOrigin.put(f.getOriginName(), f);
+            }
+        }
+        int maxOrd = oldByOrigin.values().stream()
+                .mapToInt(f -> f.getOrd() == null ? 0 : f.getOrd())
+                .max().orElse(0);
+        List<DatasetField> merged = new ArrayList<>();
+        if (fresh == null) {
+            return merged;
+        }
+        for (DatasetField f : fresh) {
+            DatasetField old = oldByOrigin.get(f.getOriginName());
+            if (old != null) {
+                // 命中:保留用户配置,仅刷新源端可变属性
+                old.setDataType(f.getDataType());
+                if (f.getSourceTable() != null) {
+                    old.setSourceTable(f.getSourceTable());
+                }
+                merged.add(old);
+            } else {
+                // 新增:默认维度启用,追加 ord
+                if (f.getAlias() == null) {
+                    f.setAlias(f.getOriginName());
+                }
+                if (f.getDisplayName() == null) {
+                    f.setDisplayName(f.getOriginName());
+                }
+                if (f.getFieldType() == null) {
+                    f.setFieldType(FieldType.DIMENSION);
+                }
+                if (f.getIsEnabled() == null) {
+                    f.setIsEnabled(true);
+                }
+                f.setOrd(++maxOrd);
+                merged.add(f);
+            }
+        }
+        return merged;
     }
 }

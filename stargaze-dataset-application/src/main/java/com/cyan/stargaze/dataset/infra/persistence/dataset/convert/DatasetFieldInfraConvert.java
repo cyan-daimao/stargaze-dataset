@@ -32,7 +32,14 @@ public abstract class DatasetFieldInfraConvert {
     @Mapping(target = "id", source = "id", qualifiedByName = "stringToLong")
     @Mapping(target = "datasetId", source = "datasetId", qualifiedByName = "stringToLong")
     @Mapping(target = "dictionaryId", source = "dictionaryId", qualifiedByName = "stringToLong")
+    @Mapping(target = "hidden", source = "isEnabled", qualifiedByName = "invertEnabled")
     public abstract DatasetFieldDO toDatasetFieldDO(DatasetField field);
+
+    /** 写:hidden = !isEnabled(与 is_enabled 互为反值,兼容旧列) */
+    @Named("invertEnabled")
+    protected Boolean invertEnabled(Boolean isEnabled) {
+        return isEnabled == null ? null : !isEnabled;
+    }
 
     public abstract List<DatasetFieldDO> toDatasetFieldDOList(List<DatasetField> fields);
 

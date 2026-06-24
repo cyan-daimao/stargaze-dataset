@@ -34,7 +34,9 @@ public class DatasetRefreshScheduler {
      */
     @Scheduled(cron = "${dataset-refresh.cron:0 30 1 * * ?}")
     public void refreshAll() {
-        List<Dataset> datasets = datasetRepository.list(new DatasetListQuery());
+        DatasetListQuery query = new DatasetListQuery().setPage(1).setSize(10000);
+        com.cyan.arch.common.api.Page<Dataset> page = datasetRepository.page(query);
+        List<Dataset> datasets = page.getData();
         log.info("数据集元数据刷新开始,共 {} 个数据集", datasets.size());
         int success = 0;
         for (Dataset dataset : datasets) {

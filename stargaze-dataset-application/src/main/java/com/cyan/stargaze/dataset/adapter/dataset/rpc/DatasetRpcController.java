@@ -39,7 +39,7 @@ public class DatasetRpcController implements DatasetClient {
         DatasetFieldBO field = datasetService.resolveField(datasetId, fieldId);
         ResolveFieldDTO dto = DatasetAdapterConvert.INSTANCE.toResolveFieldDTO(field);
         // 补充数据源 ID(供 metric binding 推断)
-        dto.setDatasourceId(datasetService.findById(datasetId).getDataSourceId());
+        dto.setDatasourceId(datasetService.findById(datasetId).getDatasourceId());
         return Response.success(dto);
     }
 

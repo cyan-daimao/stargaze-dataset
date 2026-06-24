@@ -1,25 +1,47 @@
 package com.cyan.stargaze.dataset.adapter.dataset.http;
 
+import com.cyan.arch.common.api.Page;
 import com.cyan.arch.common.api.Response;
 import com.cyan.employee.client.dto.EmployeeDTO;
 import com.cyan.employee.login.filter.UserContextHolder;
+import com.cyan.stargaze.dataset.adapter.common.PageDTO;
 import com.cyan.stargaze.dataset.adapter.dataset.http.convert.DatasetAdapterConvert;
-import com.cyan.stargaze.dataset.adapter.dataset.http.dto.DatasetDTO;
-import com.cyan.stargaze.dataset.adapter.datasource.http.dto.TableSampleDTO;
+import com.cyan.stargaze.dataset.adapter.dataset.http.dto.DatasetCreateDTO;
+import com.cyan.stargaze.dataset.adapter.dataset.http.dto.DatasetDeleteDTO;
+import com.cyan.stargaze.dataset.adapter.dataset.http.dto.DatasetDetailDTO;
+import com.cyan.stargaze.dataset.adapter.dataset.http.dto.DatasetListDTO;
+import com.cyan.stargaze.dataset.adapter.dataset.http.dto.DatasetSyncDTO;
+import com.cyan.stargaze.dataset.adapter.dataset.http.dto.DatasetSyncStatusDTO;
+import com.cyan.stargaze.dataset.adapter.dataset.http.dto.DatasetUpdateDTO;
+import com.cyan.stargaze.dataset.adapter.dataset.http.dto.ExcelPreviewDTO;
+import com.cyan.stargaze.dataset.adapter.dataset.http.dto.ExcelUploadDTO;
+import com.cyan.stargaze.dataset.adapter.dataset.http.dto.SqlPreviewDTO;
+import com.cyan.stargaze.dataset.adapter.dataset.http.dto.TableFieldsDTO;
+import com.cyan.stargaze.dataset.adapter.dataset.http.dto.TableListDTO;
+import com.cyan.stargaze.dataset.adapter.datasource.http.dto.DatabaseDTO;
+import com.cyan.stargaze.dataset.adapter.datasource.http.convert.DatasourceAdapterConvert;
+import com.cyan.stargaze.dataset.application.dataset.DatasetFileService;
 import com.cyan.stargaze.dataset.application.dataset.DatasetHierarchyService;
 import com.cyan.stargaze.dataset.application.dataset.DatasetParameterService;
 import com.cyan.stargaze.dataset.application.dataset.DatasetService;
 import com.cyan.stargaze.dataset.application.dataset.MaterializedViewService;
 import com.cyan.stargaze.dataset.application.dataset.bo.DatasetBO;
-import com.cyan.stargaze.dataset.application.dataset.cmd.DatasetCmd;
+import com.cyan.stargaze.dataset.application.dataset.bo.ExcelPreviewBO;
+import com.cyan.stargaze.dataset.application.dataset.bo.SqlPreviewBO;
+import com.cyan.stargaze.dataset.application.dataset.cmd.DatasetCreateCmd;
 import com.cyan.stargaze.dataset.application.dataset.cmd.DatasetHierarchyCmd;
 import com.cyan.stargaze.dataset.application.dataset.cmd.DatasetParameterCmd;
+import com.cyan.stargaze.dataset.application.dataset.cmd.DatasetSyncCmd;
+import com.cyan.stargaze.dataset.application.dataset.cmd.DatasetUpdateCmd;
 import com.cyan.stargaze.dataset.application.dataset.cmd.MaterializedViewCmd;
-import com.cyan.stargaze.dataset.domain.datasource.valobj.TableSampleValObj;
+import com.cyan.stargaze.dataset.application.dataset.cmd.SqlPreviewCmd;
+import com.cyan.stargaze.dataset.application.datasource.DatasourceService;
 import com.cyan.stargaze.dataset.domain.dataset.DatasetHierarchy;
 import com.cyan.stargaze.dataset.domain.dataset.DatasetParameter;
 import com.cyan.stargaze.dataset.domain.dataset.MaterializedView;
 import com.cyan.stargaze.dataset.domain.dataset.query.DatasetListQuery;
+import com.cyan.stargaze.dataset.enums.DatasetSourceType;
+import com.cyan.stargaze.dataset.enums.DatasetStatus;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -30,13 +52,16 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.Optional;
 
 /**
- * 数据集控制器(/api)。
+ * 数据集控制器(/api/v1/datasets)。
  * <p>
- * 数据集 CRUD、字段管理、元数据刷新、预览;辅助:层级/参数/物化加速配置。
+ * 数据集 CRUD、SQL 预览、表探查、Excel 上传/预览、同步;辅助:层级/参数/物化加速配置。
  *
  * @author cy.Y
  * @since 1.0.0
@@ -46,91 +71,170 @@ import java.util.List;
 public class DatasetController {
 
     private final DatasetService datasetService;
+    private final DatasourceService datasourceService;
+    private final DatasetFileService datasetFileService;
     private final DatasetHierarchyService hierarchyService;
     private final DatasetParameterService parameterService;
     private final MaterializedViewService materializedViewService;
 
     public DatasetController(DatasetService datasetService,
+                             DatasourceService datasourceService,
+                             DatasetFileService datasetFileService,
                              DatasetHierarchyService hierarchyService,
                              DatasetParameterService parameterService,
                              MaterializedViewService materializedViewService) {
         this.datasetService = datasetService;
+        this.datasourceService = datasourceService;
+        this.datasetFileService = datasetFileService;
         this.hierarchyService = hierarchyService;
         this.parameterService = parameterService;
         this.materializedViewService = materializedViewService;
     }
 
-    // ==================== 数据集管理 ====================
+    // ==================== 1. 列表 ====================
 
-    /**
-     * 创建数据集
-     */
+    @GetMapping
+    public Response<PageDTO<DatasetListDTO>> page(
+            @RequestParam(value = "page", defaultValue = "1") int page,
+            @RequestParam(value = "size", defaultValue = "20") int size,
+            @RequestParam(value = "keyword", required = false) String keyword,
+            @RequestParam(value = "source_type", required = false) DatasetSourceType sourceType,
+            @RequestParam(value = "status", required = false) DatasetStatus status) {
+        DatasetListQuery query = new DatasetListQuery()
+                .setPage(page).setSize(size).setKeyword(keyword).setSourceType(sourceType).setStatus(status);
+        Page<com.cyan.stargaze.dataset.application.dataset.bo.DatasetListBO> p = datasetService.page(query);
+        List<DatasetListDTO> list = DatasetAdapterConvert.INSTANCE.toDatasetListDTOList(p.getData());
+        return Response.success(new PageDTO<>(list, p.getTotal(), (int) p.getCurrent(), (int) p.getSize()));
+    }
+
+    // ==================== 2. 创建 ====================
+
     @PostMapping
-    public Response<DatasetDTO> create(@RequestBody @Valid DatasetCmd cmd) {
+    public Response<DatasetCreateDTO> create(@RequestBody @Valid DatasetCreateCmd cmd) {
         fillCurrentUser(cmd);
         DatasetBO bo = datasetService.create(cmd);
-        return Response.success(DatasetAdapterConvert.INSTANCE.toDatasetDTO(bo));
+        DatasetCreateDTO dto = new DatasetCreateDTO()
+                .setId(bo.getId())
+                .setName(bo.getName())
+                .setStatus(bo.getStatus())
+                .setCreatedAt(bo.getCreatedAt());
+        return Response.success(dto);
     }
 
-    /**
-     * 更新数据集
-     */
-    @PutMapping("/{id}")
-    public Response<DatasetDTO> update(@PathVariable("id") String id, @RequestBody @Valid DatasetCmd cmd) {
-        cmd.setId(id);
-        fillCurrentUser(cmd);
-        DatasetBO bo = datasetService.update(cmd);
-        return Response.success(DatasetAdapterConvert.INSTANCE.toDatasetDTO(bo));
-    }
+    // ==================== 3. 详情 ====================
 
-    /**
-     * 列表
-     */
-    @GetMapping
-    public Response<List<DatasetDTO>> list(@RequestParam(value = "workspaceId", required = false) String workspaceId,
-                                           @RequestParam(value = "name", required = false) String name) {
-        DatasetListQuery query = new DatasetListQuery().setWorkspaceId(workspaceId).setName(name);
-        List<DatasetDTO> dtos = datasetService.list(query).stream()
-                .map(DatasetAdapterConvert.INSTANCE::toDatasetDTO)
-                .toList();
-        return Response.success(dtos);
-    }
-
-    /**
-     * 详情(含字段)
-     */
     @GetMapping("/{id}")
-    public Response<DatasetDTO> findById(@PathVariable("id") String id) {
+    public Response<DatasetDetailDTO> findById(@PathVariable("id") String id) {
         DatasetBO bo = datasetService.findById(id);
-        return Response.success(DatasetAdapterConvert.INSTANCE.toDatasetDTO(bo));
+        return Response.success(DatasetAdapterConvert.INSTANCE.toDatasetDetailDTO(bo));
     }
 
-    /**
-     * 删除
-     */
+    // ==================== 4. 更新 ====================
+
+    @PutMapping("/{id}")
+    public Response<DatasetUpdateDTO> update(@PathVariable("id") String id, @RequestBody @Valid DatasetUpdateCmd cmd) {
+        fillUpdatedBy(cmd);
+        DatasetBO bo = datasetService.update(id, cmd);
+        return Response.success(new DatasetUpdateDTO().setId(bo.getId())
+                .setVersion(DatasetAdapterConvert.INSTANCE.versionLabel(bo.getVersion()))
+                .setUpdatedAt(bo.getUpdatedAt()));
+    }
+
+    // ==================== 5. 删除 ====================
+
     @DeleteMapping("/{id}")
-    public Response<Void> delete(@PathVariable("id") String id) {
+    public Response<DatasetDeleteDTO> delete(@PathVariable("id") String id) {
         datasetService.delete(id);
-        return Response.success();
+        return Response.success(new DatasetDeleteDTO().setId(id).setDeletedAt(OffsetDateTime.now()));
     }
 
-    /**
-     * 元数据刷新(重新采集表结构)
-     */
-    @PostMapping("/{id}/refresh")
-    public Response<DatasetDTO> refresh(@PathVariable("id") String id) {
-        DatasetBO bo = datasetService.refresh(id);
-        return Response.success(DatasetAdapterConvert.INSTANCE.toDatasetDTO(bo));
+    // ==================== 6. SQL 预览 ====================
+
+    @PostMapping("/sql-preview")
+    public Response<SqlPreviewDTO> sqlPreview(@RequestBody @Valid SqlPreviewCmd cmd) {
+        SqlPreviewBO bo = datasetService.sqlPreview(cmd);
+        return Response.success(DatasetAdapterConvert.INSTANCE.toSqlPreviewDTO(bo));
     }
 
-    /**
-     * 预览数据(采样)
-     */
-    @GetMapping("/{id}/preview")
-    public Response<TableSampleDTO> preview(@PathVariable("id") String id,
-                                            @RequestParam(value = "limit", defaultValue = "100") int limit) {
-        TableSampleValObj valObj = datasetService.preview(id, limit);
-        return Response.success(toSampleDTO(valObj));
+    // ==================== 7. 表列表 ====================
+
+    @GetMapping("/tables")
+    public Response<TableListDTO> listTables(@RequestParam("datasource_id") String datasourceId,
+                                             @RequestParam(value = "schema", required = false) String schema,
+                                             @RequestParam(value = "keyword", required = false) String keyword) {
+        List<String> schemas = Optional.ofNullable(datasourceService.listSchemas(datasourceId)).orElse(List.of())
+                .stream().map(DatasourceAdapterConvert.INSTANCE::toDatabaseDTO)
+                .map(DatabaseDTO::getName).toList();
+        List<com.cyan.stargaze.dataset.domain.datasource.valobj.TableMetaValObj> tables =
+                datasourceService.listTablesRich(datasourceId, schema, keyword);
+        TableListDTO dto = new TableListDTO()
+                .setSchemas(schemas)
+                .setTables(DatasetAdapterConvert.INSTANCE.toTableMetaDTOList(tables));
+        return Response.success(dto);
+    }
+
+    // ==================== 8. 表字段 ====================
+
+    @GetMapping("/tables/{schema}/{tableName}/fields")
+    public Response<TableFieldsDTO> tableFields(@PathVariable("schema") String schema,
+                                                @PathVariable("tableName") String tableName,
+                                                @RequestParam("datasource_id") String datasourceId) {
+        com.cyan.stargaze.dataset.domain.datasource.valobj.TableSchemaValObj valObj =
+                datasourceService.describeTable(datasourceId, schema, tableName);
+        return Response.success(DatasetAdapterConvert.INSTANCE.toTableFieldsDTO(valObj));
+    }
+
+    // ==================== 9. Excel 上传 ====================
+
+    @PostMapping("/upload")
+    public Response<ExcelUploadDTO> upload(@RequestParam("file") MultipartFile file) {
+        String workspaceId = currentUserId();
+        com.cyan.stargaze.dataset.application.dataset.bo.DatasetFileBO fileBO =
+                datasetFileService.upload(workspaceId, file);
+        List<String> sheetNames = Optional.ofNullable(datasetFileService.listSheets(fileBO.getId()))
+                .orElse(List.of()).stream()
+                .map(com.cyan.stargaze.dataset.domain.dataset.valobj.ExcelSheetValObj::getName)
+                .toList();
+        ExcelUploadDTO dto = new ExcelUploadDTO()
+                .setFileId(fileBO.getId())
+                .setFileName(fileBO.getFileName())
+                .setFileSize(fileBO.getSize())
+                .setSheetNames(sheetNames)
+                .setPreviewUrl("/api/v1/datasets/preview/" + fileBO.getId());
+        return Response.success(dto);
+    }
+
+    // ==================== 10. Excel 预览 ====================
+
+    @GetMapping("/preview/{fileId}")
+    public Response<ExcelPreviewDTO> excelPreview(@PathVariable("fileId") String fileId,
+                                                  @RequestParam(value = "sheet_name", required = false) String sheetName,
+                                                  @RequestParam(value = "limit", defaultValue = "5") int limit) {
+        // sheetName 为空取第一个 sheet
+        if (sheetName == null || sheetName.isBlank()) {
+            List<com.cyan.stargaze.dataset.domain.dataset.valobj.ExcelSheetValObj> sheets =
+                    datasetFileService.listSheets(fileId);
+            if (sheets == null || sheets.isEmpty()) {
+                throw new com.cyan.arch.common.api.SilentException("文件无可用工作表");
+            }
+            sheetName = sheets.get(0).getName();
+        }
+        ExcelPreviewBO bo = datasetFileService.preview(fileId, sheetName, 1, limit);
+        return Response.success(DatasetAdapterConvert.INSTANCE.toExcelPreviewDTO(bo));
+    }
+
+    // ==================== 11. 同步 ====================
+
+    @PostMapping("/{id}/sync")
+    public Response<DatasetSyncDTO> sync(@PathVariable("id") String id, @RequestBody(required = false) DatasetSyncCmd cmd) {
+        return Response.success(DatasetAdapterConvert.INSTANCE.toDatasetSyncDTO(datasetService.sync(id, cmd)));
+    }
+
+    // ==================== 12. 同步状态 ====================
+
+    @GetMapping("/{id}/sync-status")
+    public Response<DatasetSyncStatusDTO> syncStatus(@PathVariable("id") String id) {
+        return Response.success(DatasetAdapterConvert.INSTANCE.toDatasetSyncStatusDTO(datasetService.syncStatus(id)));
     }
 
     // ==================== 维度层级 ====================
@@ -193,17 +297,25 @@ public class DatasetController {
         return Response.success();
     }
 
-    // ==================== 私有方法 ====================
+    // ==================== 私有 ====================
 
-    private void fillCurrentUser(DatasetCmd cmd) {
+    private void fillCurrentUser(DatasetCreateCmd cmd) {
         EmployeeDTO employee = UserContextHolder.getCurrentEmployee();
         if (employee != null && employee.getId() != null) {
             cmd.setCreatedBy(employee.getId());
+            cmd.setWorkspaceId(cmd.getWorkspaceId() == null ? employee.getId() : cmd.getWorkspaceId());
+        }
+    }
+
+    private void fillUpdatedBy(DatasetUpdateCmd cmd) {
+        EmployeeDTO employee = UserContextHolder.getCurrentEmployee();
+        if (employee != null && employee.getId() != null) {
             cmd.setUpdatedBy(employee.getId());
         }
     }
 
-    private TableSampleDTO toSampleDTO(TableSampleValObj valObj) {
-        return new TableSampleDTO().setColumns(valObj.getColumns()).setRows(valObj.getRows());
+    private String currentUserId() {
+        EmployeeDTO employee = UserContextHolder.getCurrentEmployee();
+        return employee == null ? null : employee.getId();
     }
 }
