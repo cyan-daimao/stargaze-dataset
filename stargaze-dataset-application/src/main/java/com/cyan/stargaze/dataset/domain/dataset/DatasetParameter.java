@@ -8,7 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 
 /**
  * 数据集参数字段领域对象(可被图表/过滤引用的动态变量)。
@@ -41,13 +41,13 @@ public class DatasetParameter {
     private String defaultValue;
 
     /** 创建时间 */
-    private LocalDateTime createdAt;
+    private OffsetDateTime createdAt;
 
     /** 更新时间 */
-    private LocalDateTime updatedAt;
+    private OffsetDateTime updatedAt;
 
     /** 逻辑删除时间 */
-    private LocalDateTime deletedAt;
+    private OffsetDateTime deletedAt;
 
     /**
      * 校验

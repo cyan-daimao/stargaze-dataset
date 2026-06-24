@@ -10,7 +10,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 
 /**
  * 数据集维度层级表 DO(dataset_hierarchy)。
@@ -43,14 +43,14 @@ public class DatasetHierarchyDO {
 
     /** 创建时间 */
     @TableField("created_at")
-    private LocalDateTime createdAt;
+    private OffsetDateTime createdAt;
 
     /** 更新时间 */
     @TableField("updated_at")
-    private LocalDateTime updatedAt;
+    private OffsetDateTime updatedAt;
 
     /** 逻辑删除时间 */
     @TableField("deleted_at")
     @TableLogic(value = "null", delval = "now()")
-    private LocalDateTime deletedAt;
+    private OffsetDateTime deletedAt;
 }

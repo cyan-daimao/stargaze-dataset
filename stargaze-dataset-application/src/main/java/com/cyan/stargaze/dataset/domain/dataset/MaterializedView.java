@@ -9,7 +9,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 
 /**
  * 物化加速配置领域对象(充血模型)。
@@ -49,7 +49,7 @@ public class MaterializedView {
     private String refreshCron;
 
     /** 最近同步时间 */
-    private LocalDateTime lastSyncAt;
+    private OffsetDateTime lastSyncAt;
 
     /** 同步状态 */
     private SyncStatus status;
@@ -64,13 +64,13 @@ public class MaterializedView {
     private String updatedBy;
 
     /** 创建时间 */
-    private LocalDateTime createdAt;
+    private OffsetDateTime createdAt;
 
     /** 更新时间 */
-    private LocalDateTime updatedAt;
+    private OffsetDateTime updatedAt;
 
     /** 逻辑删除时间 */
-    private LocalDateTime deletedAt;
+    private OffsetDateTime deletedAt;
 
     /**
      * 校验
@@ -88,8 +88,8 @@ public class MaterializedView {
         validate();
         this.targetEngine = this.targetEngine == null ? "starrocks" : this.targetEngine;
         this.status = this.status == null ? SyncStatus.IDLE : this.status;
-        this.createdAt = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
+        this.createdAt = OffsetDateTime.now();
+        this.updatedAt = OffsetDateTime.now();
         return repository.save(this);
     }
 
@@ -99,7 +99,7 @@ public class MaterializedView {
     public MaterializedView update(MaterializedViewRepository repository) {
         validate();
         Assert.notBlank(this.id, new SilentException("物化加速配置 ID 不能为空"));
-        this.updatedAt = LocalDateTime.now();
+        this.updatedAt = OffsetDateTime.now();
         return repository.update(this);
     }
 
@@ -108,7 +108,7 @@ public class MaterializedView {
      */
     public void markSyncing() {
         this.status = SyncStatus.SYNCING;
-        this.updatedAt = LocalDateTime.now();
+        this.updatedAt = OffsetDateTime.now();
     }
 
     /**
@@ -116,8 +116,8 @@ public class MaterializedView {
      */
     public void markSynced() {
         this.status = SyncStatus.IDLE;
-        this.lastSyncAt = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
+        this.lastSyncAt = OffsetDateTime.now();
+        this.updatedAt = OffsetDateTime.now();
     }
 
     /**
@@ -125,7 +125,7 @@ public class MaterializedView {
      */
     public void markError() {
         this.status = SyncStatus.ERROR;
-        this.updatedAt = LocalDateTime.now();
+        this.updatedAt = OffsetDateTime.now();
     }
 
     /**

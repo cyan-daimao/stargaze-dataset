@@ -12,7 +12,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 
 /**
  * 数据源领域对象(充血模型)。
@@ -56,13 +56,13 @@ public class DataSource {
     private String updatedBy;
 
     /** 创建时间 */
-    private LocalDateTime createdAt;
+    private OffsetDateTime createdAt;
 
     /** 更新时间 */
-    private LocalDateTime updatedAt;
+    private OffsetDateTime updatedAt;
 
     /** 逻辑删除时间 */
-    private LocalDateTime deletedAt;
+    private OffsetDateTime deletedAt;
 
     /**
      * 校验必填项
@@ -86,8 +86,8 @@ public class DataSource {
         DataSource existing = repository.findByName(this.workspaceId, this.name);
         Assert.isNull(existing, new SilentException("数据源名称已存在"));
         this.status = CommonStatus.ACTIVE;
-        this.createdAt = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
+        this.createdAt = OffsetDateTime.now();
+        this.updatedAt = OffsetDateTime.now();
         return repository.save(this);
     }
 
@@ -97,7 +97,7 @@ public class DataSource {
     public DataSource update(DataSourceRepository repository) {
         validate();
         Assert.notBlank(this.id, new SilentException("数据源 ID 不能为空"));
-        this.updatedAt = LocalDateTime.now();
+        this.updatedAt = OffsetDateTime.now();
         return repository.update(this);
     }
 
@@ -114,7 +114,7 @@ public class DataSource {
      */
     public void markError() {
         this.status = CommonStatus.ERROR;
-        this.updatedAt = LocalDateTime.now();
+        this.updatedAt = OffsetDateTime.now();
     }
 
     /**
@@ -122,6 +122,6 @@ public class DataSource {
      */
     public void markActive() {
         this.status = CommonStatus.ACTIVE;
-        this.updatedAt = LocalDateTime.now();
+        this.updatedAt = OffsetDateTime.now();
     }
 }

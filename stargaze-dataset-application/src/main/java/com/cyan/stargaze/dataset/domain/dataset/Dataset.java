@@ -10,7 +10,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.List;
 
 /**
@@ -64,13 +64,13 @@ public class Dataset {
     private String updatedBy;
 
     /** 创建时间 */
-    private LocalDateTime createdAt;
+    private OffsetDateTime createdAt;
 
     /** 更新时间 */
-    private LocalDateTime updatedAt;
+    private OffsetDateTime updatedAt;
 
     /** 逻辑删除时间 */
-    private LocalDateTime deletedAt;
+    private OffsetDateTime deletedAt;
 
     /** 字段列表(聚合子实体) */
     private List<DatasetField> fields;
@@ -98,8 +98,8 @@ public class Dataset {
         }
         this.status = CommonStatus.ACTIVE;
         this.version = 1;
-        this.createdAt = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
+        this.createdAt = OffsetDateTime.now();
+        this.updatedAt = OffsetDateTime.now();
         return repository.save(this);
     }
 
@@ -113,7 +113,7 @@ public class Dataset {
             fields.forEach(DatasetField::validate);
         }
         this.version = (this.version == null ? 1 : this.version) + 1;
-        this.updatedAt = LocalDateTime.now();
+        this.updatedAt = OffsetDateTime.now();
         return repository.update(this);
     }
 
