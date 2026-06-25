@@ -158,6 +158,8 @@ public interface DatasetAdapterConvert {
             return null;
         }
         return new com.cyan.stargaze.dataset.client.dto.DatasetFieldDTO()
+                .setId(bo.getId())
+                .setDatasetId(bo.getDatasetId())
                 .setOriginName(bo.getFieldName())
                 .setAlias(bo.getDisplayName())
                 .setDataType(com.cyan.stargaze.dataset.infra.util.DataTypeInferrer.infer(bo.getDataType()))
@@ -179,6 +181,7 @@ public interface DatasetAdapterConvert {
             return null;
         }
         return new com.cyan.stargaze.dataset.client.dto.ResolveFieldDTO()
+                .setId(bo.getId())
                 .setOriginName(bo.getFieldName())
                 .setAlias(bo.getDisplayName())
                 .setDataType(com.cyan.stargaze.dataset.infra.util.DataTypeInferrer.infer(bo.getDataType()))
