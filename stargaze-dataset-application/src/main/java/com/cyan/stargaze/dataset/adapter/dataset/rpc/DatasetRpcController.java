@@ -9,6 +9,7 @@ import com.cyan.stargaze.dataset.client.dto.DatasetFieldDTO;
 import com.cyan.stargaze.dataset.client.dto.ResolveFieldDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -22,6 +23,7 @@ import java.util.List;
  * @since 1.0.0
  */
 @RestController
+@RequestMapping("/rpc/v1/dataset")
 @RequiredArgsConstructor
 public class DatasetRpcController implements DatasetClient {
 
