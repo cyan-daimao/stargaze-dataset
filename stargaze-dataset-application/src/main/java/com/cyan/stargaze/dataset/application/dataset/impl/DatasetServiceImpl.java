@@ -398,7 +398,9 @@ public class DatasetServiceImpl implements DatasetService {
                 .setOriginName(bo.getFieldName())
                 .setAlias(bo.getFieldName())
                 .setDisplayName(bo.getDisplayName() == null ? bo.getFieldName() : bo.getDisplayName())
+                .setFieldType(bo.getFieldType())
                 .setDataType(bo.getDataType())
+                .setAggregation(bo.getAggregation())
                 .setSourceTable(bo.getSourceTable())
                 .setIsEnabled(bo.getIsEnabled() == null || bo.getIsEnabled())
                 .setOrd(bo.getSortOrder())).toList();
