@@ -9,7 +9,6 @@ import com.cyan.stargaze.dataset.application.dataset.bo.DatasetListBO;
 import com.cyan.stargaze.dataset.client.DatasetClient;
 import com.cyan.stargaze.dataset.client.dto.DatasetFieldDTO;
 import com.cyan.stargaze.dataset.client.dto.DatasetListItemDTO;
-import com.cyan.stargaze.dataset.client.dto.PageDTO;
 import com.cyan.stargaze.dataset.client.dto.ResolveFieldDTO;
 import com.cyan.stargaze.dataset.domain.dataset.query.DatasetListQuery;
 import com.cyan.stargaze.dataset.enums.DatasetSourceType;
@@ -38,7 +37,7 @@ public class DatasetRpcController implements DatasetClient {
     private final DatasetService datasetService;
 
     @Override
-    public Response<PageDTO<DatasetListItemDTO>> page(
+    public Response<Page<DatasetListItemDTO>> page(
             @RequestParam(value = "workspaceId", required = false) String workspaceId,
             @RequestParam(value = "page", defaultValue = "1") int page,
             @RequestParam(value = "size", defaultValue = "20") int size,
@@ -54,11 +53,7 @@ public class DatasetRpcController implements DatasetClient {
                 .setStatus(parseStatus(status));
         Page<DatasetListBO> p = datasetService.page(query);
         List<DatasetListItemDTO> list = p.getData().stream().map(this::toClientListItem).toList();
-        return Response.success(new PageDTO<DatasetListItemDTO>()
-                .setData(list)
-                .setTotal(p.getTotal())
-                .setPage(p.getCurrent())
-                .setSize(p.getSize()));
+        return Response.success(new Page<DatasetListItemDTO>(list, p.getCurrent(), p.getSize(), p.getTotal()));
     }
 
     @Override

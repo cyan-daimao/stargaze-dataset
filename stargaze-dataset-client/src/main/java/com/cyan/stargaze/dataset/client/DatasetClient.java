@@ -1,9 +1,9 @@
 package com.cyan.stargaze.dataset.client;
 
+import com.cyan.arch.common.api.Page;
 import com.cyan.arch.common.api.Response;
 import com.cyan.stargaze.dataset.client.dto.DatasetFieldDTO;
 import com.cyan.stargaze.dataset.client.dto.DatasetListItemDTO;
-import com.cyan.stargaze.dataset.client.dto.PageDTO;
 import com.cyan.stargaze.dataset.client.dto.ResolveFieldDTO;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -36,7 +36,7 @@ public interface DatasetClient {
      * @return 分页结果
      */
     @GetMapping
-    Response<PageDTO<DatasetListItemDTO>> page(
+    Response<Page<DatasetListItemDTO>> page(
             @RequestParam(value = "workspaceId", required = false) String workspaceId,
             @RequestParam(value = "page", defaultValue = "1") int page,
             @RequestParam(value = "size", defaultValue = "20") int size,
