@@ -22,7 +22,6 @@ DROP TABLE IF EXISTS stargaze_dataset.data_source;
 -- ==================== 数据源 ====================
 CREATE TABLE stargaze_dataset.data_source (
     id            BIGINT       PRIMARY KEY,
-    workspace_id  BIGINT,
     name          VARCHAR(128) NOT NULL,
     type          VARCHAR(32)  NOT NULL,
     config_enc    TEXT,
@@ -34,13 +33,11 @@ CREATE TABLE stargaze_dataset.data_source (
     updated_at    TIMESTAMPTZ  NOT NULL DEFAULT now(),
     deleted_at    TIMESTAMPTZ
 );
-CREATE INDEX idx_data_source_workspace ON stargaze_dataset.data_source (workspace_id);
 CREATE INDEX idx_data_source_name      ON stargaze_dataset.data_source (name);
 
 -- ==================== 数据集 ====================
 CREATE TABLE stargaze_dataset.dataset (
     id            BIGINT       PRIMARY KEY,
-    workspace_id  BIGINT,
     name          VARCHAR(128) NOT NULL,
     description   VARCHAR(500),
     source_type   VARCHAR(16)  NOT NULL,
@@ -56,7 +53,6 @@ CREATE TABLE stargaze_dataset.dataset (
     updated_at    TIMESTAMPTZ  NOT NULL DEFAULT now(),
     deleted_at    TIMESTAMPTZ
 );
-CREATE INDEX idx_dataset_workspace ON stargaze_dataset.dataset (workspace_id);
 CREATE INDEX idx_dataset_name      ON stargaze_dataset.dataset (name);
 CREATE INDEX idx_dataset_source    ON stargaze_dataset.dataset (source_type);
 
@@ -131,7 +127,6 @@ CREATE INDEX idx_materialized_view_dataset ON stargaze_dataset.materialized_view
 -- ==================== 数据集文件(Excel/CSV 上传) ====================
 CREATE TABLE stargaze_dataset.dataset_file (
     id            BIGINT       PRIMARY KEY,
-    workspace_id  BIGINT,
     file_name     VARCHAR(255) NOT NULL,
     object_key    VARCHAR(512) NOT NULL,
     content_type  VARCHAR(128),
@@ -143,5 +138,4 @@ CREATE TABLE stargaze_dataset.dataset_file (
     updated_at    TIMESTAMPTZ  NOT NULL DEFAULT now(),
     deleted_at    TIMESTAMPTZ
 );
-CREATE INDEX idx_dataset_file_workspace  ON stargaze_dataset.dataset_file (workspace_id);
 CREATE INDEX idx_dataset_file_object_key ON stargaze_dataset.dataset_file (object_key);

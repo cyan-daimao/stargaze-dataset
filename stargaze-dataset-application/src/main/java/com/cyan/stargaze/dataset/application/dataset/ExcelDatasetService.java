@@ -17,15 +17,15 @@ public interface ExcelDatasetService {
     /**
      * 解析 Excel 为数据集字段列表
      */
-    List<DatasetFieldBO> resolveFields(String workspaceId, ExcelConfig config);
+    List<DatasetFieldBO> resolveFields(ExcelConfig config);
 
     /**
      * 预览 Excel 数据
      */
-    TableSampleValObj preview(String workspaceId, ExcelConfig config, int limit);
+    TableSampleValObj preview(ExcelConfig config, int limit);
 
     /**
      * Excel 行数(statistics 用)
      */
-    Long rowCount(String workspaceId, ExcelConfig config);
+    Long rowCount(ExcelConfig config);
 }

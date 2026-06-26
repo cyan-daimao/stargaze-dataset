@@ -56,8 +56,6 @@ public class DataSourceRepositoryImpl implements DataSourceRepository {
     public List<DataSource> list(DataSourceListQuery query) {
         query = query == null ? new DataSourceListQuery() : query;
         LambdaQueryWrapper<DataSourceDO> wrapper = new LambdaQueryWrapper<DataSourceDO>()
-                .eq(StringUtils.isNotBlank(query.getWorkspaceId()),
-                        DataSourceDO::getWorkspaceId, IdUtil.toLong(query.getWorkspaceId()))
                 .like(StringUtils.isNotBlank(query.getName()),
                         DataSourceDO::getName, query.getName())
                 .eq(query.getType() != null, DataSourceDO::getType, query.getType())
@@ -69,9 +67,8 @@ public class DataSourceRepositoryImpl implements DataSourceRepository {
     }
 
     @Override
-    public DataSource findByName(String workspaceId, String name) {
+    public DataSource findByName(String name) {
         LambdaQueryWrapper<DataSourceDO> wrapper = new LambdaQueryWrapper<DataSourceDO>()
-                .eq(DataSourceDO::getWorkspaceId, IdUtil.toLong(workspaceId))
                 .eq(DataSourceDO::getName, name);
         DataSourceDO dataSourceDO = dataSourceMapper.selectOne(wrapper);
         return dataSourceDO == null ? null : convert.toDataSource(dataSourceDO);

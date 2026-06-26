@@ -38,14 +38,12 @@ public class DatasetRpcController implements DatasetClient {
 
     @Override
     public Response<Page<DatasetListItemDTO>> page(
-            @RequestParam(value = "workspaceId", required = false) String workspaceId,
             @RequestParam(value = "page", defaultValue = "1") int page,
             @RequestParam(value = "size", defaultValue = "20") int size,
             @RequestParam(value = "keyword", required = false) String keyword,
             @RequestParam(value = "sourceType", required = false) String sourceType,
             @RequestParam(value = "status", required = false) String status) {
         DatasetListQuery query = new DatasetListQuery()
-                .setWorkspaceId(workspaceId)
                 .setPage(page)
                 .setSize(size)
                 .setKeyword(keyword)

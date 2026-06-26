@@ -9,7 +9,6 @@ import java.util.List;
  * 一期为进程内事件,二期可接 MQ。
  *
  * @param datasetId  数据集 ID
- * @param workspaceId 空间 ID
  * @param added      新增字段 originName 列表
  * @param removed    删除字段 originName 列表
  * @param changed    类型变更字段 originName 列表
@@ -17,7 +16,7 @@ import java.util.List;
  * @author cy.Y
  * @since 1.0.0
  */
-public record DatasetFieldChangedEvent(String datasetId, String workspaceId,
+public record DatasetFieldChangedEvent(String datasetId,
                                        List<String> added, List<String> removed, List<String> changed,
                                        OffsetDateTime occurredAt) {
 }

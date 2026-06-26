@@ -21,9 +21,6 @@ public class DatasetFileBO {
     /** 文件 ID */
     private String id;
 
-    /** 所属空间 ID */
-    private String workspaceId;
-
     /** 原始文件名 */
     private String fileName;
 

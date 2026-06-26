@@ -35,7 +35,6 @@ public abstract class DataSourceInfraConvert {
      * DO -> Domain
      */
     @Mapping(target = "id", source = "id", qualifiedByName = "longToString")
-    @Mapping(target = "workspaceId", source = "workspaceId", qualifiedByName = "longToString")
     @Mapping(target = "config", source = "configEnc", qualifiedByName = "decryptToConfig")
     @Mapping(target = "poolConfig", source = "poolConfig", qualifiedByName = "jsonToPoolConfig")
     @Mapping(target = "createdBy", source = "createdBy", qualifiedByName = "longToString")
@@ -46,7 +45,6 @@ public abstract class DataSourceInfraConvert {
      * Domain -> DO
      */
     @Mapping(target = "id", source = "id", qualifiedByName = "stringToLong")
-    @Mapping(target = "workspaceId", source = "workspaceId", qualifiedByName = "stringToLong")
     @Mapping(target = "configEnc", source = "config", qualifiedByName = "encryptConfig")
     @Mapping(target = "poolConfig", source = "poolConfig", qualifiedByName = "poolConfigToJson")
     @Mapping(target = "createdBy", source = "createdBy", qualifiedByName = "stringToLong")

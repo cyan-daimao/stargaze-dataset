@@ -31,10 +31,7 @@ public class DataSource {
     /** 主键 */
     private String id;
 
-    /** 所属空间 ID */
-    private String workspaceId;
-
-    /** 数据源名称(空间内唯一) */
+    /** 数据源名称(全局唯一) */
     private String name;
 
     /** 数据源类型 */
@@ -68,7 +65,6 @@ public class DataSource {
      * 校验必填项
      */
     private void validate() {
-        Assert.notBlank(this.workspaceId, new SilentException("空间 ID 不能为空"));
         Assert.notBlank(this.name, new SilentException("数据源名称不能为空"));
         Assert.notNull(this.type, new SilentException("数据源类型不能为空"));
         Assert.notNull(this.config, new SilentException("数据源连接配置不能为空"));
@@ -82,8 +78,8 @@ public class DataSource {
      */
     public DataSource save(DataSourceRepository repository) {
         validate();
-        // 空间内名称唯一校验
-        DataSource existing = repository.findByName(this.workspaceId, this.name);
+        // 名称全局唯一校验
+        DataSource existing = repository.findByName(this.name);
         Assert.isNull(existing, new SilentException("数据源名称已存在"));
         this.status = CommonStatus.ACTIVE;
         this.createdAt = OffsetDateTime.now();

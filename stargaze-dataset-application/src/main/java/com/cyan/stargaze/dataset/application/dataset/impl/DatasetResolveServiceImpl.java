@@ -54,7 +54,7 @@ public class DatasetResolveServiceImpl implements DatasetResolveService {
                 return joinDatasetService.resolveFields(cmd.getDatasourceId(), cmd.getJoinConfig());
             case EXCEL:
                 Assert.notNull(cmd.getExcelConfig(), new SilentException("缺少 excel_config"));
-                return excelDatasetService.resolveFields(cmd.getWorkspaceId(), cmd.getExcelConfig());
+                return excelDatasetService.resolveFields(cmd.getExcelConfig());
             default:
                 throw new SilentException("暂不支持的数据集来源类型: " + cmd.getSourceType());
         }

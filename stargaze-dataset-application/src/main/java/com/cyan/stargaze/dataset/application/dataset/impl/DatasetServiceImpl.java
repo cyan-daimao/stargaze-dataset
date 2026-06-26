@@ -94,7 +94,6 @@ public class DatasetServiceImpl implements DatasetService {
                 .setSourceType(cmd.getSourceType())
                 .setDataSourceId(cmd.getDatasourceId())
                 .setDefinition(DatasetConfigs.toJson(config))
-                .setWorkspaceId(cmd.getWorkspaceId())
                 .setCreatedBy(cmd.getCreatedBy())
                 .setUpdatedBy(cmd.getCreatedBy());
         // fields 为空时自动解析
@@ -237,7 +236,7 @@ public class DatasetServiceImpl implements DatasetService {
             case JOIN:
                 return joinDatasetService.preview(dataset.getDataSourceId(), (JoinConfig) config, limit);
             case EXCEL:
-                return excelDatasetService.preview(dataset.getWorkspaceId(), (ExcelConfig) config, limit);
+                return excelDatasetService.preview((ExcelConfig) config, limit);
             default:
                 throw new SilentException("暂不支持的数据集来源类型: " + dataset.getSourceType());
         }
@@ -299,7 +298,7 @@ public class DatasetServiceImpl implements DatasetService {
                 bos = toFieldBOs(compiled.getColumns(), null);
                 break;
             case EXCEL:
-                bos = excelDatasetService.resolveFields(dataset.getWorkspaceId(), (ExcelConfig) config);
+                bos = excelDatasetService.resolveFields((ExcelConfig) config);
                 break;
             default:
                 throw new SilentException("暂不支持的数据集来源类型: " + dataset.getSourceType());
@@ -368,7 +367,7 @@ public class DatasetServiceImpl implements DatasetService {
                 // SQL/JOIN 行数:包裹 select count(*) from (<sql>) (best-effort)
                 return null;
             case EXCEL:
-                return excelDatasetService.rowCount(dataset.getWorkspaceId(), (ExcelConfig) config);
+                return excelDatasetService.rowCount((ExcelConfig) config);
             default:
                 return null;
         }
@@ -421,7 +420,7 @@ public class DatasetServiceImpl implements DatasetService {
             }
         }
         eventPublisher.publishEvent(new DatasetFieldChangedEvent(
-                dataset.getId(), dataset.getWorkspaceId(), added, removed, changed, OffsetDateTime.now()));
+                dataset.getId(), added, removed, changed, OffsetDateTime.now()));
     }
 
     private Map<String, DataType> snapshotTypes(List<DatasetField> existing) {

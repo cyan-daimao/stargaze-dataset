@@ -27,9 +27,6 @@ public class DatasourceDTO {
     /** 主键 */
     private String id;
 
-    /** 所属空间 ID */
-    private String workspaceId;
-
     /** 数据源名称 */
     private String name;
 

@@ -33,7 +33,4 @@ public class DatasetListQuery {
 
     /** 状态 */
     private DatasetStatus status;
-
-    /** 空间 ID(可空) */
-    private String workspaceId;
 }

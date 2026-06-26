@@ -29,7 +29,7 @@ public class ExcelDatasetServiceImpl implements ExcelDatasetService {
     private final DatasetFileService datasetFileService;
 
     @Override
-    public List<DatasetFieldBO> resolveFields(String workspaceId, ExcelConfig config) {
+    public List<DatasetFieldBO> resolveFields(ExcelConfig config) {
         DatasetFile file = datasetFileService.getFile(config.getFileId());
         TableSchemaValObj schema = datasetFileService.schema(config.getFileId(), config.getSheetName(), 1);
         List<DatasetFieldBO> fields = new ArrayList<>();
@@ -48,12 +48,12 @@ public class ExcelDatasetServiceImpl implements ExcelDatasetService {
     }
 
     @Override
-    public TableSampleValObj preview(String workspaceId, ExcelConfig config, int limit) {
+    public TableSampleValObj preview(ExcelConfig config, int limit) {
         return datasetFileService.sample(config.getFileId(), config.getSheetName(), 1, limit);
     }
 
     @Override
-    public Long rowCount(String workspaceId, ExcelConfig config) {
+    public Long rowCount(ExcelConfig config) {
         try {
             TableSchemaValObj schema = datasetFileService.schema(config.getFileId(), config.getSheetName(), 1);
             return schema.getRowCount();

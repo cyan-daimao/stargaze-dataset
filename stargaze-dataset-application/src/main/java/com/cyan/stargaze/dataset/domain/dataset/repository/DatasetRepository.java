@@ -23,9 +23,9 @@ public interface DatasetRepository {
     Page<Dataset> page(DatasetListQuery query);
 
     /**
-     * 按空间+名称查询(唯一性校验;workspaceId 为空时全局唯一)
+     * 按名称查询(唯一性校验)
      */
-    Dataset findByName(String workspaceId, String name);
+    Dataset findByName(String name);
 
     /**
      * 保存(主表 + 字段列表)

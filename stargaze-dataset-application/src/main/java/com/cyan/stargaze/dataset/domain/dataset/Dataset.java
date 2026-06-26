@@ -34,10 +34,7 @@ public class Dataset {
     /** 主键 */
     private String id;
 
-    /** 所属空间 ID(可空,前端契约不使用 workspace 概念) */
-    private String workspaceId;
-
-    /** 数据集名称(workspaceId 非空时空间内唯一,否则全局唯一) */
+    /** 数据集名称(全局唯一) */
     private String name;
 
     /** 描述 */
@@ -96,7 +93,7 @@ public class Dataset {
      */
     public Dataset save(DatasetRepository repository) {
         validate();
-        Dataset existing = repository.findByName(this.workspaceId, this.name);
+        Dataset existing = repository.findByName(this.name);
         Assert.isNull(existing, new SilentException("数据集名称已存在"));
         if (fields != null) {
             fields.forEach(DatasetField::validate);

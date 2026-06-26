@@ -47,8 +47,7 @@ public class DatasetFileServiceImpl implements DatasetFileService {
     private final DatasetFileAppConvert convert;
 
     @Override
-    public DatasetFileBO upload(String workspaceId, MultipartFile file) {
-        Assert.notBlank(workspaceId, new SilentException("空间 ID 不能为空"));
+    public DatasetFileBO upload(MultipartFile file) {
         Assert.notNull(file, new SilentException("文件不能为空"));
         Assert.isTrue(!file.isEmpty(), new SilentException("文件不能为空"));
         long size = file.getSize();
@@ -57,14 +56,13 @@ public class DatasetFileServiceImpl implements DatasetFileService {
         String fileName = file.getOriginalFilename();
         Assert.notBlank(fileName, new SilentException("文件名不能为空"));
         String contentType = file.getContentType();
-        String objectKey = buildObjectKey(workspaceId, fileName);
+        String objectKey = buildObjectKey(fileName);
         try (InputStream input = file.getInputStream()) {
             objectStorageClient.putObject(objectKey, input, contentType, size);
         } catch (IOException e) {
             throw new SilentException("读取上传文件失败: " + e.getMessage());
         }
         DatasetFile datasetFile = new DatasetFile()
-                .setWorkspaceId(workspaceId)
                 .setFileName(fileName)
                 .setObjectKey(objectKey)
                 .setContentType(contentType)
@@ -178,14 +176,14 @@ public class DatasetFileServiceImpl implements DatasetFileService {
     }
 
     /**
-     * 构造对象 key: workspace/{workspaceId}/dataset-files/{ts}{ext}
+     * 构造对象 key: dataset-files/{ts}{ext}
      */
-    private String buildObjectKey(String workspaceId, String fileName) {
+    private String buildObjectKey(String fileName) {
         String ext = "";
         int dot = fileName.lastIndexOf('.');
         if (dot >= 0) {
             ext = fileName.substring(dot);
         }
-        return "workspace/" + workspaceId + "/dataset-files/" + System.currentTimeMillis() + ext;
+        return "dataset-files/" + System.currentTimeMillis() + ext;
     }
 }

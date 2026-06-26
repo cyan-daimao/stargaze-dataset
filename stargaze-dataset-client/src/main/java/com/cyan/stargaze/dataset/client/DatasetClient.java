@@ -27,7 +27,6 @@ public interface DatasetClient {
     /**
      * 分页查询数据集列表(供 metric 一键同步)
      *
-     * @param workspaceId 空间 ID
      * @param page        页码
      * @param size        每页条数
      * @param keyword     关键词
@@ -37,7 +36,6 @@ public interface DatasetClient {
      */
     @GetMapping
     Response<Page<DatasetListItemDTO>> page(
-            @RequestParam(value = "workspaceId", required = false) String workspaceId,
             @RequestParam(value = "page", defaultValue = "1") int page,
             @RequestParam(value = "size", defaultValue = "20") int size,
             @RequestParam(value = "keyword", required = false) String keyword,

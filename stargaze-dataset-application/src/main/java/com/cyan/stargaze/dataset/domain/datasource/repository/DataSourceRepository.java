@@ -29,9 +29,9 @@ public interface DataSourceRepository {
     List<DataSource> list(DataSourceListQuery query);
 
     /**
-     * 按空间+名称查询(唯一性校验)
+     * 按名称查询(唯一性校验)
      */
-    DataSource findByName(String workspaceId, String name);
+    DataSource findByName(String name);
 
     /**
      * 保存

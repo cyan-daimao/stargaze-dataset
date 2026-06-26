@@ -64,8 +64,6 @@ public class DatasetRepositoryImpl implements DatasetRepository {
         int current = query.getPage() == null || query.getPage() < 1 ? 1 : query.getPage();
         int size = query.getSize() == null || query.getSize() < 1 ? 20 : query.getSize();
         LambdaQueryWrapper<DatasetDO> wrapper = new LambdaQueryWrapper<DatasetDO>()
-                .eq(StringUtils.isNotBlank(query.getWorkspaceId()),
-                        DatasetDO::getWorkspaceId, IdUtil.toLong(query.getWorkspaceId()))
                 .like(StringUtils.isNotBlank(query.getKeyword()),
                         DatasetDO::getName, query.getKeyword())
                 .eq(query.getSourceType() != null, DatasetDO::getSourceType, query.getSourceType())
@@ -79,14 +77,10 @@ public class DatasetRepositoryImpl implements DatasetRepository {
     }
 
     @Override
-    public Dataset findByName(String workspaceId, String name) {
+    public Dataset findByName(String name) {
         Assert.notBlank(name, new SilentException("数据集名称不能为空"));
         LambdaQueryWrapper<DatasetDO> wrapper = new LambdaQueryWrapper<DatasetDO>()
                 .eq(DatasetDO::getName, name);
-        // workspaceId 非空时按空间唯一,否则全局唯一
-        if (StringUtils.isNotBlank(workspaceId)) {
-            wrapper.eq(DatasetDO::getWorkspaceId, IdUtil.toLong(workspaceId));
-        }
         DatasetDO datasetDO = datasetMapper.selectOne(wrapper);
         return datasetDO == null ? null : convert.toDataset(datasetDO);
     }

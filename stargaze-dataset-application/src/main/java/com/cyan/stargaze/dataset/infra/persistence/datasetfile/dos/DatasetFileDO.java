@@ -30,10 +30,6 @@ public class DatasetFileDO {
     @TableId(value = "id", type = IdType.ASSIGN_ID)
     private Long id;
 
-    /** 所属空间 ID */
-    @TableField("workspace_id")
-    private Long workspaceId;
-
     /** 原始文件名 */
     @TableField("file_name")
     private String fileName;

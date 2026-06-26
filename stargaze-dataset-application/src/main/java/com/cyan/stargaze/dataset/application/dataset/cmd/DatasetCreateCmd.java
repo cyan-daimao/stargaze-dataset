@@ -63,7 +63,4 @@ public class DatasetCreateCmd {
 
     /** 创建人(controller 从 UserHolder 透传) */
     private String createdBy;
-
-    /** 空间 ID(可空) */
-    private String workspaceId;
 }

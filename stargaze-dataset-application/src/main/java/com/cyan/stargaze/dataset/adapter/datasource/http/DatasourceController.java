@@ -70,9 +70,8 @@ public class DatasourceController {
      * 列表
      */
     @GetMapping
-    public Response<List<DatasourceDTO>> list(@RequestParam(value = "workspaceId", required = false) String workspaceId,
-                                              @RequestParam(value = "name", required = false) String name) {
-        DataSourceListQuery query = new DataSourceListQuery().setWorkspaceId(workspaceId).setName(name);
+    public Response<List<DatasourceDTO>> list(@RequestParam(value = "name", required = false) String name) {
+        DataSourceListQuery query = new DataSourceListQuery().setName(name);
         List<DatasourceDTO> dtos = datasourceService.list(query).stream()
                 .map(DatasourceAdapterConvert.INSTANCE::toDatasourceDTO)
                 .toList();

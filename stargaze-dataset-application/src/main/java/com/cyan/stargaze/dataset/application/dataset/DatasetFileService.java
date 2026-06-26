@@ -20,7 +20,7 @@ public interface DatasetFileService {
     /**
      * 上传文件
      */
-    DatasetFileBO upload(String workspaceId, MultipartFile file);
+    DatasetFileBO upload(MultipartFile file);
 
     /**
      * 列出 sheet

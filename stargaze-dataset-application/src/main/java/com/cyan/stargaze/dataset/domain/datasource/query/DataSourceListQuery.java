@@ -18,9 +18,6 @@ import lombok.experimental.Accessors;
 @Accessors(chain = true)
 public class DataSourceListQuery {
 
-    /** 空间 ID */
-    private String workspaceId;
-
     /** 名称(模糊) */
     private String name;
 

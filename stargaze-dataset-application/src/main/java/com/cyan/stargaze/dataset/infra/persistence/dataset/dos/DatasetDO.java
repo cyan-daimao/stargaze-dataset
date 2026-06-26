@@ -31,10 +31,6 @@ public class DatasetDO {
     @TableId(value = "id", type = IdType.ASSIGN_ID)
     private Long id;
 
-    /** 所属空间 ID */
-    @TableField("workspace_id")
-    private Long workspaceId;
-
     /** 数据集名称 */
     @TableField("name")
     private String name;

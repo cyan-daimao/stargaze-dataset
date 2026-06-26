@@ -202,9 +202,8 @@ public class DatasetController {
 
     @PostMapping("/upload")
     public Response<ExcelUploadDTO> upload(@RequestParam("file") MultipartFile file) {
-        String workspaceId = currentUserId();
         com.cyan.stargaze.dataset.application.dataset.bo.DatasetFileBO fileBO =
-                datasetFileService.upload(workspaceId, file);
+                datasetFileService.upload(file);
         List<String> sheetNames = Optional.ofNullable(datasetFileService.listSheets(fileBO.getId()))
                 .orElse(List.of()).stream()
                 .map(com.cyan.stargaze.dataset.domain.dataset.valobj.ExcelSheetValObj::getName)
@@ -317,7 +316,6 @@ public class DatasetController {
         EmployeeDTO employee = UserContextHolder.getCurrentEmployee();
         if (employee != null && employee.getId() != null) {
             cmd.setCreatedBy(employee.getId());
-            cmd.setWorkspaceId(cmd.getWorkspaceId() == null ? employee.getId() : cmd.getWorkspaceId());
         }
     }
 

@@ -16,8 +16,8 @@ public class DatasetFieldChangedLogger {
 
     @EventListener
     public void onFieldChanged(DatasetFieldChangedEvent event) {
-        log.info("数据集字段变更通知 dataset.field.changed, datasetId={}, workspaceId={}, added={}, removed={}, changed={}",
-                event.datasetId(), event.workspaceId(),
+        log.info("数据集字段变更通知 dataset.field.changed, datasetId={}, added={}, removed={}, changed={}",
+                event.datasetId(),
                 event.added(), event.removed(), event.changed());
     }
 }

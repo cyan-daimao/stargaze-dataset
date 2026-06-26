@@ -28,9 +28,6 @@ public class DatasetFile {
     /** 主键 */
     private String id;
 
-    /** 所属空间 ID */
-    private String workspaceId;
-
     /** 原始文件名 */
     private String fileName;
 
@@ -65,7 +62,6 @@ public class DatasetFile {
      * 校验必填项
      */
     private void validate() {
-        Assert.notBlank(this.workspaceId, new SilentException("空间 ID 不能为空"));
         Assert.notBlank(this.fileName, new SilentException("文件名不能为空"));
         Assert.notBlank(this.objectKey, new SilentException("对象 key 不能为空"));
     }

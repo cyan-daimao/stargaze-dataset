@@ -26,10 +26,6 @@ public class DatasourceCmd {
     /** 主键(更新时必填) */
     private String id;
 
-    /** 所属空间 ID */
-    @NotBlank(message = "空间 ID 不能为空")
-    private String workspaceId;
-
     /** 数据源名称 */
     @NotBlank(message = "数据源名称不能为空")
     private String name;

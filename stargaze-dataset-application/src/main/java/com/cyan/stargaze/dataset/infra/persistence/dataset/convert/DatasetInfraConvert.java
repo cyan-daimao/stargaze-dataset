@@ -21,7 +21,6 @@ public abstract class DatasetInfraConvert {
     public static final DatasetInfraConvert INSTANCE = Mappers.getMapper(DatasetInfraConvert.class);
 
     @Mapping(target = "id", source = "id", qualifiedByName = "longToString")
-    @Mapping(target = "workspaceId", source = "workspaceId", qualifiedByName = "longToString")
     @Mapping(target = "dataSourceId", source = "dataSourceId", qualifiedByName = "longToString")
     @Mapping(target = "createdBy", source = "createdBy", qualifiedByName = "longToString")
     @Mapping(target = "updatedBy", source = "updatedBy", qualifiedByName = "longToString")
@@ -29,7 +28,6 @@ public abstract class DatasetInfraConvert {
     public abstract Dataset toDataset(DatasetDO datasetDO);
 
     @Mapping(target = "id", source = "id", qualifiedByName = "stringToLong")
-    @Mapping(target = "workspaceId", source = "workspaceId", qualifiedByName = "stringToLong")
     @Mapping(target = "dataSourceId", source = "dataSourceId", qualifiedByName = "stringToLong")
     @Mapping(target = "createdBy", source = "createdBy", qualifiedByName = "stringToLong")
     @Mapping(target = "updatedBy", source = "updatedBy", qualifiedByName = "stringToLong")

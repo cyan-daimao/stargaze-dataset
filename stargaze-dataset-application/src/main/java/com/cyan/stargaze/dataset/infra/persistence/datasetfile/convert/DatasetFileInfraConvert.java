@@ -22,14 +22,12 @@ public abstract class DatasetFileInfraConvert {
 
     /** DO -> Domain */
     @Mapping(target = "id", source = "id", qualifiedByName = "longToString")
-    @Mapping(target = "workspaceId", source = "workspaceId", qualifiedByName = "longToString")
     @Mapping(target = "createdBy", source = "createdBy", qualifiedByName = "longToString")
     @Mapping(target = "updatedBy", source = "updatedBy", qualifiedByName = "longToString")
     public abstract DatasetFile toDatasetFile(DatasetFileDO datasetFileDO);
 
     /** Domain -> DO */
     @Mapping(target = "id", source = "id", qualifiedByName = "stringToLong")
-    @Mapping(target = "workspaceId", source = "workspaceId", qualifiedByName = "stringToLong")
     @Mapping(target = "createdBy", source = "createdBy", qualifiedByName = "stringToLong")
     @Mapping(target = "updatedBy", source = "updatedBy", qualifiedByName = "stringToLong")
     public abstract DatasetFileDO toDatasetFileDO(DatasetFile datasetFile);
