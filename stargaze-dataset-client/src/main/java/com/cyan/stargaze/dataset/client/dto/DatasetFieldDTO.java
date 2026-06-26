@@ -40,9 +40,6 @@ public class DatasetFieldDTO {
     /** 基础语义标注(geo/time/category,jsonb 序列化字符串) */
     private String semanticType;
 
-    /** 是否隐藏 */
-    private Boolean hidden;
-
     /** 排序序号 */
     private Integer ord;
 }

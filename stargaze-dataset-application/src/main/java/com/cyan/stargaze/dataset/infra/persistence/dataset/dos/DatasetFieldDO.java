@@ -79,10 +79,6 @@ public class DatasetFieldDO {
     @TableField("dictionary_id")
     private Long dictionaryId;
 
-    /** 是否隐藏(旧字段,兼容保留;与 is_enabled 互为反值) */
-    @TableField("hidden")
-    private Boolean hidden;
-
     /** 排序序号 */
     @TableField("ord")
     private Integer ord;

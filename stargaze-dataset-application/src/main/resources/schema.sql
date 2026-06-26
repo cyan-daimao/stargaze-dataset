@@ -96,7 +96,6 @@ CREATE TABLE dataset_field (
     semantic_type TEXT,                                -- 基础语义标注(JSON 序列化字符串)
     format        TEXT,                                -- 格式(JSON 序列化字符串)
     dictionary_id BIGINT,
-    hidden        BOOLEAN      DEFAULT FALSE,          -- 是否隐藏(旧字段,兼容保留)
     ord           INT          NOT NULL DEFAULT 0,     -- 排序序号
     created_at    TIMESTAMPTZ  NOT NULL DEFAULT now(),
     updated_at    TIMESTAMPTZ  NOT NULL DEFAULT now(),
@@ -108,7 +107,6 @@ COMMENT ON COLUMN dataset_field.field_type IS '字段类型:dimension/measure';
 COMMENT ON COLUMN dataset_field.data_type IS '数据类型(原始 DB 类型串)';
 COMMENT ON COLUMN dataset_field.aggregation IS '聚合方式(度量字段)';
 COMMENT ON COLUMN dataset_field.is_enabled IS '是否启用';
-COMMENT ON COLUMN dataset_field.hidden IS '是否隐藏(旧字段,兼容保留;与 is_enabled 互为反值)';
 COMMENT ON COLUMN dataset_field.ord IS '排序序号';
 
 CREATE INDEX idx_dataset_field_dataset ON dataset_field (dataset_id) WHERE deleted_at IS NULL;
