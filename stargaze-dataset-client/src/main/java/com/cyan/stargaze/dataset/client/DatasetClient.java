@@ -2,6 +2,8 @@ package com.cyan.stargaze.dataset.client;
 
 import com.cyan.arch.common.api.Response;
 import com.cyan.stargaze.dataset.client.dto.DatasetFieldDTO;
+import com.cyan.stargaze.dataset.client.dto.DatasetListItemDTO;
+import com.cyan.stargaze.dataset.client.dto.PageDTO;
 import com.cyan.stargaze.dataset.client.dto.ResolveFieldDTO;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,6 +23,26 @@ import java.util.List;
  */
 @FeignClient(name = "stargaze-dataset", contextId = "datasetClient", path = "/rpc/v1/dataset", url = "${feign.stargaze-dataset.url:}")
 public interface DatasetClient {
+
+    /**
+     * 分页查询数据集列表(供 metric 一键同步)
+     *
+     * @param workspaceId 空间 ID
+     * @param page        页码
+     * @param size        每页条数
+     * @param keyword     关键词
+     * @param sourceType  来源类型
+     * @param status      状态
+     * @return 分页结果
+     */
+    @GetMapping
+    Response<PageDTO<DatasetListItemDTO>> page(
+            @RequestParam(value = "workspaceId", required = false) String workspaceId,
+            @RequestParam(value = "page", defaultValue = "1") int page,
+            @RequestParam(value = "size", defaultValue = "20") int size,
+            @RequestParam(value = "keyword", required = false) String keyword,
+            @RequestParam(value = "sourceType", required = false) String sourceType,
+            @RequestParam(value = "status", required = false) String status);
 
     /**
      * 查询数据集全部字段(供 metric 绑定字段)
