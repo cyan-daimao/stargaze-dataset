@@ -1,7 +1,7 @@
 package com.cyan.stargaze.dataset.application.dataset;
 
+import com.cyan.stargaze.dataset.application.dataset.bo.DatasetHierarchyBO;
 import com.cyan.stargaze.dataset.application.dataset.cmd.DatasetHierarchyCmd;
-import com.cyan.stargaze.dataset.domain.dataset.DatasetHierarchy;
 
 import java.util.List;
 
@@ -13,11 +13,11 @@ import java.util.List;
  */
 public interface DatasetHierarchyService {
 
-    DatasetHierarchy create(DatasetHierarchyCmd cmd);
+    DatasetHierarchyBO create(DatasetHierarchyCmd cmd);
 
-    DatasetHierarchy update(DatasetHierarchyCmd cmd);
+    DatasetHierarchyBO update(DatasetHierarchyCmd cmd);
 
     void delete(String id);
 
-    List<DatasetHierarchy> listByDatasetId(String datasetId);
+    List<DatasetHierarchyBO> listByDatasetId(String datasetId);
 }

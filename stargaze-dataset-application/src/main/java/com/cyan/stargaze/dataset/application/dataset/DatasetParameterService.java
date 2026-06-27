@@ -1,7 +1,7 @@
 package com.cyan.stargaze.dataset.application.dataset;
 
+import com.cyan.stargaze.dataset.application.dataset.bo.DatasetParameterBO;
 import com.cyan.stargaze.dataset.application.dataset.cmd.DatasetParameterCmd;
-import com.cyan.stargaze.dataset.domain.dataset.DatasetParameter;
 
 import java.util.List;
 
@@ -13,11 +13,11 @@ import java.util.List;
  */
 public interface DatasetParameterService {
 
-    DatasetParameter create(DatasetParameterCmd cmd);
+    DatasetParameterBO create(DatasetParameterCmd cmd);
 
-    DatasetParameter update(DatasetParameterCmd cmd);
+    DatasetParameterBO update(DatasetParameterCmd cmd);
 
     void delete(String id);
 
-    List<DatasetParameter> listByDatasetId(String datasetId);
+    List<DatasetParameterBO> listByDatasetId(String datasetId);
 }

@@ -26,6 +26,8 @@ public abstract class MaterializedViewInfraConvert {
     @Mapping(target = "datasetId", source = "datasetId", qualifiedByName = "longToString")
     @Mapping(target = "createdBy", source = "createdBy", qualifiedByName = "longToString")
     @Mapping(target = "updatedBy", source = "updatedBy", qualifiedByName = "longToString")
+    @Mapping(target = "save", ignore = true)
+    @Mapping(target = "update", ignore = true)
     public abstract MaterializedView toMaterializedView(MaterializedViewDO viewDO);
 
     public abstract List<MaterializedView> toMaterializedViewList(List<MaterializedViewDO> viewDOs);

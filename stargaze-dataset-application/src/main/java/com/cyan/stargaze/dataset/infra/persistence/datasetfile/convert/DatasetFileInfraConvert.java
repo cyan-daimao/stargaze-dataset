@@ -24,6 +24,7 @@ public abstract class DatasetFileInfraConvert {
     @Mapping(target = "id", source = "id", qualifiedByName = "longToString")
     @Mapping(target = "createdBy", source = "createdBy", qualifiedByName = "longToString")
     @Mapping(target = "updatedBy", source = "updatedBy", qualifiedByName = "longToString")
+    @Mapping(target = "save", ignore = true)
     public abstract DatasetFile toDatasetFile(DatasetFileDO datasetFileDO);
 
     /** Domain -> DO */

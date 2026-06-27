@@ -5,13 +5,16 @@ import com.cyan.stargaze.dataset.adapter.dataset.http.dto.DatasetCreateDTO;
 import com.cyan.stargaze.dataset.adapter.dataset.http.dto.DatasetDeleteDTO;
 import com.cyan.stargaze.dataset.adapter.dataset.http.dto.DatasetDetailDTO;
 import com.cyan.stargaze.dataset.adapter.dataset.http.dto.DatasetFieldDTO;
+import com.cyan.stargaze.dataset.adapter.dataset.http.dto.DatasetHierarchyDTO;
 import com.cyan.stargaze.dataset.adapter.dataset.http.dto.DatasetListDTO;
+import com.cyan.stargaze.dataset.adapter.dataset.http.dto.DatasetParameterDTO;
 import com.cyan.stargaze.dataset.adapter.dataset.http.dto.DatasetStatisticsDTO;
 import com.cyan.stargaze.dataset.adapter.dataset.http.dto.DatasetSyncDTO;
 import com.cyan.stargaze.dataset.adapter.dataset.http.dto.DatasetSyncStatusDTO;
 import com.cyan.stargaze.dataset.adapter.dataset.http.dto.DatasetUpdateDTO;
 import com.cyan.stargaze.dataset.adapter.dataset.http.dto.ExcelColumnDTO;
 import com.cyan.stargaze.dataset.adapter.dataset.http.dto.ExcelPreviewDTO;
+import com.cyan.stargaze.dataset.adapter.dataset.http.dto.MaterializedViewDTO;
 import com.cyan.stargaze.dataset.adapter.dataset.http.dto.SqlColumnDTO;
 import com.cyan.stargaze.dataset.adapter.dataset.http.dto.SqlPreviewDTO;
 import com.cyan.stargaze.dataset.adapter.dataset.http.dto.TableFieldDTO;
@@ -20,10 +23,13 @@ import com.cyan.stargaze.dataset.adapter.dataset.http.dto.TableListDTO;
 import com.cyan.stargaze.dataset.adapter.dataset.http.dto.TableMetaDTO;
 import com.cyan.stargaze.dataset.application.dataset.bo.DatasetBO;
 import com.cyan.stargaze.dataset.application.dataset.bo.DatasetFieldBO;
+import com.cyan.stargaze.dataset.application.dataset.bo.DatasetHierarchyBO;
 import com.cyan.stargaze.dataset.application.dataset.bo.DatasetListBO;
+import com.cyan.stargaze.dataset.application.dataset.bo.DatasetParameterBO;
 import com.cyan.stargaze.dataset.application.dataset.bo.DatasetStatisticsBO;
 import com.cyan.stargaze.dataset.application.dataset.bo.DatasetSyncBO;
 import com.cyan.stargaze.dataset.application.dataset.bo.ExcelPreviewBO;
+import com.cyan.stargaze.dataset.application.dataset.bo.MaterializedViewBO;
 import com.cyan.stargaze.dataset.application.dataset.bo.SqlPreviewBO;
 import com.cyan.stargaze.dataset.domain.datasource.valobj.ColumnValObj;
 import com.cyan.stargaze.dataset.domain.datasource.valobj.TableMetaValObj;
@@ -71,6 +77,21 @@ public interface DatasetAdapterConvert {
     DatasetSyncDTO toDatasetSyncDTO(DatasetSyncBO bo);
 
     DatasetSyncStatusDTO toDatasetSyncStatusDTO(DatasetSyncBO bo);
+
+    /** 维度层级 BO -> DTO */
+    DatasetHierarchyDTO toDatasetHierarchyDTO(DatasetHierarchyBO bo);
+
+    List<DatasetHierarchyDTO> toDatasetHierarchyDTOList(List<DatasetHierarchyBO> bos);
+
+    /** 参数字段 BO -> DTO */
+    DatasetParameterDTO toDatasetParameterDTO(DatasetParameterBO bo);
+
+    List<DatasetParameterDTO> toDatasetParameterDTOList(List<DatasetParameterBO> bos);
+
+    /** 物化加速配置 BO -> DTO */
+    MaterializedViewDTO toMaterializedViewDTO(MaterializedViewBO bo);
+
+    List<MaterializedViewDTO> toMaterializedViewDTOList(List<MaterializedViewBO> bos);
 
     /** SQL 预览 BO -> DTO(rows Map -> List<Object>) */
     default SqlPreviewDTO toSqlPreviewDTO(SqlPreviewBO bo) {
@@ -164,7 +185,7 @@ public interface DatasetAdapterConvert {
                 .setDisplayName(bo.getDisplayName())
                 .setOriginName(bo.getFieldName())
                 .setAlias(bo.getDisplayName())
-                .setDataType(com.cyan.stargaze.dataset.infra.util.DataTypeInferrer.infer(bo.getDataType()))
+                .setDataType(com.cyan.stargaze.dataset.domain.dataset.valobj.DataTypeInferrer.infer(bo.getDataType()))
                 .setFieldType(bo.getFieldType());
     }
 
@@ -186,7 +207,7 @@ public interface DatasetAdapterConvert {
                 .setId(bo.getId())
                 .setOriginName(bo.getFieldName())
                 .setAlias(bo.getDisplayName())
-                .setDataType(com.cyan.stargaze.dataset.infra.util.DataTypeInferrer.infer(bo.getDataType()))
+                .setDataType(com.cyan.stargaze.dataset.domain.dataset.valobj.DataTypeInferrer.infer(bo.getDataType()))
                 .setFieldType(bo.getFieldType());
     }
 }

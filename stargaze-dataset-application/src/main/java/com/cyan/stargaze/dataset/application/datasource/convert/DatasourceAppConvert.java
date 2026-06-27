@@ -5,6 +5,7 @@ import com.cyan.stargaze.dataset.application.datasource.bo.DatasourceBO;
 import com.cyan.stargaze.dataset.application.datasource.cmd.DatasourceCmd;
 import com.cyan.stargaze.dataset.domain.datasource.DataSource;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 
 /**
@@ -22,5 +23,11 @@ public interface DatasourceAppConvert {
     DatasourceBO toDatasourceBO(DataSource dataSource);
 
     /** Cmd -> Domain */
+    @Mapping(target = "save", ignore = true)
+    @Mapping(target = "update", ignore = true)
+    @Mapping(target = "status", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
+    @Mapping(target = "deletedAt", ignore = true)
     DataSource toDataSource(DatasourceCmd cmd);
 }

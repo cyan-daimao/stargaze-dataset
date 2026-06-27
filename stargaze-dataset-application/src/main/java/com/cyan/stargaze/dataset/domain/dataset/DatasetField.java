@@ -2,8 +2,8 @@ package com.cyan.stargaze.dataset.domain.dataset;
 
 import com.cyan.arch.common.api.Assert;
 import com.cyan.arch.common.api.SilentException;
+import com.cyan.stargaze.dataset.domain.dataset.valobj.DataTypeInferrer;
 import com.cyan.stargaze.dataset.enums.FieldType;
-import com.cyan.stargaze.dataset.infra.util.DataTypeInferrer;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -64,6 +64,12 @@ public class DatasetField {
 
     /** 排序序号 */
     private Integer ord;
+
+    /** 创建人 */
+    private String createdBy;
+
+    /** 修改人 */
+    private String updatedBy;
 
     /** 创建时间 */
     private OffsetDateTime createdAt;

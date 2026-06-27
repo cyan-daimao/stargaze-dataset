@@ -17,7 +17,6 @@ import com.cyan.stargaze.dataset.domain.dataset.config.JoinConfig;
 import com.cyan.stargaze.dataset.domain.dataset.config.SqlConfig;
 import com.cyan.stargaze.dataset.domain.dataset.config.TableConfig;
 import com.cyan.stargaze.dataset.enums.FieldType;
-import com.cyan.stargaze.dataset.infra.util.DataTypeInferrer;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

@@ -2,9 +2,9 @@ package com.cyan.stargaze.dataset.application.dataset;
 
 import com.cyan.stargaze.dataset.application.dataset.bo.DatasetFileBO;
 import com.cyan.stargaze.dataset.application.dataset.bo.ExcelPreviewBO;
-import com.cyan.stargaze.dataset.domain.dataset.valobj.ExcelSheetValObj;
-import com.cyan.stargaze.dataset.domain.datasource.valobj.TableSampleValObj;
-import com.cyan.stargaze.dataset.domain.datasource.valobj.TableSchemaValObj;
+import com.cyan.stargaze.dataset.application.dataset.bo.ExcelSheetBO;
+import com.cyan.stargaze.dataset.application.dataset.bo.TableSampleBO;
+import com.cyan.stargaze.dataset.application.dataset.bo.TableSchemaBO;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
@@ -25,17 +25,17 @@ public interface DatasetFileService {
     /**
      * 列出 sheet
      */
-    List<ExcelSheetValObj> listSheets(String fileId);
+    List<ExcelSheetBO> listSheets(String fileId);
 
     /**
      * 解析 sheet 字段结构
      */
-    TableSchemaValObj schema(String fileId, String sheetName, Integer headerRow);
+    TableSchemaBO schema(String fileId, String sheetName, Integer headerRow);
 
     /**
      * 采样 sheet 数据
      */
-    TableSampleValObj sample(String fileId, String sheetName, Integer headerRow, int limit);
+    TableSampleBO sample(String fileId, String sheetName, Integer headerRow, int limit);
 
     /**
      * 预览(列带序号/推断类型 + 行数组)
@@ -45,5 +45,5 @@ public interface DatasetFileService {
     /**
      * 查询文件登记记录(供 Excel 数据集获取 objectKey)
      */
-    com.cyan.stargaze.dataset.domain.dataset.DatasetFile getFile(String fileId);
+    DatasetFileBO getFile(String fileId);
 }

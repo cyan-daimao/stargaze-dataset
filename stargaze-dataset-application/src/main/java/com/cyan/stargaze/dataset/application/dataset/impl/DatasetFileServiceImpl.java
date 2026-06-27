@@ -3,20 +3,18 @@ package com.cyan.stargaze.dataset.application.dataset.impl;
 import com.cyan.arch.common.api.Assert;
 import com.cyan.arch.common.api.SilentException;
 import com.cyan.stargaze.dataset.application.dataset.DatasetFileService;
+import com.cyan.stargaze.dataset.application.dataset.bo.ColumnBO;
 import com.cyan.stargaze.dataset.application.dataset.bo.DatasetFileBO;
 import com.cyan.stargaze.dataset.application.dataset.bo.ExcelPreviewBO;
+import com.cyan.stargaze.dataset.application.dataset.bo.ExcelSheetBO;
+import com.cyan.stargaze.dataset.application.dataset.bo.TableSampleBO;
+import com.cyan.stargaze.dataset.application.dataset.bo.TableSchemaBO;
 import com.cyan.stargaze.dataset.application.dataset.convert.DatasetFileAppConvert;
 import com.cyan.stargaze.dataset.domain.dataset.DatasetFile;
 import com.cyan.stargaze.dataset.domain.dataset.repository.DatasetFileRepository;
-import com.cyan.stargaze.dataset.domain.dataset.valobj.ExcelSheetValObj;
-import com.cyan.stargaze.dataset.domain.datasource.valobj.ColumnValObj;
-import com.cyan.stargaze.dataset.domain.datasource.valobj.TableSampleValObj;
-import com.cyan.stargaze.dataset.domain.datasource.valobj.TableSchemaValObj;
-import com.cyan.stargaze.dataset.enums.DataType;
 import com.cyan.stargaze.dataset.infra.config.DatasetExcelProperties;
 import com.cyan.stargaze.dataset.infra.excel.ExcelFileParser;
 import com.cyan.stargaze.dataset.infra.storage.ObjectStorageClient;
-import com.cyan.stargaze.dataset.infra.util.DataTypeInferrer;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -72,33 +70,33 @@ public class DatasetFileServiceImpl implements DatasetFileService {
     }
 
     @Override
-    public List<ExcelSheetValObj> listSheets(String fileId) {
+    public List<ExcelSheetBO> listSheets(String fileId) {
         DatasetFile file = loadFile(fileId);
         File local = download(file);
         try {
-            return excelFileParser.listSheets(local);
+            return convert.toExcelSheetBOList(excelFileParser.listSheets(local));
         } finally {
             deleteQuietly(local);
         }
     }
 
     @Override
-    public TableSchemaValObj schema(String fileId, String sheetName, Integer headerRow) {
+    public TableSchemaBO schema(String fileId, String sheetName, Integer headerRow) {
         DatasetFile file = loadFile(fileId);
         File local = download(file);
         try {
-            return excelFileParser.parseSchema(local, sheetName, headerRow);
+            return convert.toTableSchemaBO(excelFileParser.parseSchema(local, sheetName, headerRow));
         } finally {
             deleteQuietly(local);
         }
     }
 
     @Override
-    public TableSampleValObj sample(String fileId, String sheetName, Integer headerRow, int limit) {
+    public TableSampleBO sample(String fileId, String sheetName, Integer headerRow, int limit) {
         DatasetFile file = loadFile(fileId);
         File local = download(file);
         try {
-            return excelFileParser.sample(local, sheetName, headerRow, limit);
+            return convert.toTableSampleBO(excelFileParser.sample(local, sheetName, headerRow, limit));
         } finally {
             deleteQuietly(local);
         }
@@ -109,18 +107,17 @@ public class DatasetFileServiceImpl implements DatasetFileService {
         DatasetFile file = loadFile(fileId);
         File local = download(file);
         try {
-            TableSchemaValObj schema = excelFileParser.parseSchema(local, sheetName, headerRow);
-            TableSampleValObj sample = excelFileParser.sample(local, sheetName, headerRow, limit);
+            TableSchemaBO schema = convert.toTableSchemaBO(excelFileParser.parseSchema(local, sheetName, headerRow));
+            TableSampleBO sample = convert.toTableSampleBO(excelFileParser.sample(local, sheetName, headerRow, limit));
             // 列: index/name/suggestedType
             List<ExcelPreviewBO.ExcelColumnBO> columns = new ArrayList<>();
             List<String> colNames = new ArrayList<>();
             int idx = 0;
-            for (ColumnValObj c : schema.getColumns()) {
-                DataType inferred = DataTypeInferrer.infer(c.getDataType());
+            for (ColumnBO c : schema.getColumns()) {
                 columns.add(new ExcelPreviewBO.ExcelColumnBO()
                         .setIndex(idx)
                         .setName(c.getName())
-                        .setSuggestedType(inferred.toDisplayType()));
+                        .setSuggestedType(c.getSuggestedType()));
                 colNames.add(c.getName());
                 idx++;
             }
@@ -146,8 +143,8 @@ public class DatasetFileServiceImpl implements DatasetFileService {
     }
 
     @Override
-    public DatasetFile getFile(String fileId) {
-        return datasetFileRepository.findById(fileId);
+    public DatasetFileBO getFile(String fileId) {
+        return convert.toDatasetFileBO(datasetFileRepository.findById(fileId));
     }
 
     /**

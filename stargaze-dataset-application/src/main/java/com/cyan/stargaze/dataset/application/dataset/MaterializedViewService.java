@@ -1,7 +1,7 @@
 package com.cyan.stargaze.dataset.application.dataset;
 
+import com.cyan.stargaze.dataset.application.dataset.bo.MaterializedViewBO;
 import com.cyan.stargaze.dataset.application.dataset.cmd.MaterializedViewCmd;
-import com.cyan.stargaze.dataset.domain.dataset.MaterializedView;
 
 import java.util.List;
 
@@ -13,11 +13,11 @@ import java.util.List;
  */
 public interface MaterializedViewService {
 
-    MaterializedView create(MaterializedViewCmd cmd);
+    MaterializedViewBO create(MaterializedViewCmd cmd);
 
-    MaterializedView update(MaterializedViewCmd cmd);
+    MaterializedViewBO update(MaterializedViewCmd cmd);
 
     void delete(String id);
 
-    List<MaterializedView> listByDatasetId(String datasetId);
+    List<MaterializedViewBO> listByDatasetId(String datasetId);
 }

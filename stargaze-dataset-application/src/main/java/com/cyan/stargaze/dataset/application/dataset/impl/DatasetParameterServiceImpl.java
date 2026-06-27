@@ -3,6 +3,7 @@ package com.cyan.stargaze.dataset.application.dataset.impl;
 import com.cyan.arch.common.api.Assert;
 import com.cyan.arch.common.api.SilentException;
 import com.cyan.stargaze.dataset.application.dataset.DatasetParameterService;
+import com.cyan.stargaze.dataset.application.dataset.bo.DatasetParameterBO;
 import com.cyan.stargaze.dataset.application.dataset.cmd.DatasetParameterCmd;
 import com.cyan.stargaze.dataset.application.dataset.convert.DatasetAuxiliaryAppConvert;
 import com.cyan.stargaze.dataset.domain.dataset.DatasetParameter;
@@ -28,31 +29,33 @@ public class DatasetParameterServiceImpl implements DatasetParameterService {
 
     @Override
     @Transactional
-    public DatasetParameter create(DatasetParameterCmd cmd) {
+    public DatasetParameterBO create(DatasetParameterCmd cmd) {
         DatasetParameter parameter = convert.toParameter(cmd);
-        parameter.validate();
-        return repository.save(parameter);
+        parameter = parameter.save(repository);
+        return convert.toParameterBO(parameter);
     }
 
     @Override
     @Transactional
-    public DatasetParameter update(DatasetParameterCmd cmd) {
+    public DatasetParameterBO update(DatasetParameterCmd cmd) {
         DatasetParameter existing = repository.findById(cmd.getId());
         Assert.notNull(existing, new SilentException("参数字段不存在"));
         DatasetParameter parameter = convert.toParameter(cmd);
         parameter.setId(existing.getId());
-        parameter.validate();
-        return repository.update(parameter);
+        parameter = parameter.update(repository);
+        return convert.toParameterBO(parameter);
     }
 
     @Override
     @Transactional
     public void delete(String id) {
-        repository.deleteById(id);
+        DatasetParameter parameter = repository.findById(id);
+        Assert.notNull(parameter, new SilentException("参数字段不存在"));
+        parameter.delete(repository);
     }
 
     @Override
-    public List<DatasetParameter> listByDatasetId(String datasetId) {
-        return repository.listByDatasetId(datasetId);
+    public List<DatasetParameterBO> listByDatasetId(String datasetId) {
+        return convert.toParameterBOList(repository.listByDatasetId(datasetId));
     }
 }

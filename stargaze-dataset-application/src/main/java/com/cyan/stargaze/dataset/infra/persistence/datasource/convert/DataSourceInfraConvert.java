@@ -39,6 +39,8 @@ public abstract class DataSourceInfraConvert {
     @Mapping(target = "poolConfig", source = "poolConfig", qualifiedByName = "jsonToPoolConfig")
     @Mapping(target = "createdBy", source = "createdBy", qualifiedByName = "longToString")
     @Mapping(target = "updatedBy", source = "updatedBy", qualifiedByName = "longToString")
+    @Mapping(target = "save", ignore = true)
+    @Mapping(target = "update", ignore = true)
     public abstract DataSource toDataSource(DataSourceDO dataSourceDO);
 
     /**

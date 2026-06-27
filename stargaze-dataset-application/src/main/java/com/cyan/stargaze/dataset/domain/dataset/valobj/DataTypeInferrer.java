@@ -1,11 +1,11 @@
-package com.cyan.stargaze.dataset.infra.util;
+package com.cyan.stargaze.dataset.domain.dataset.valobj;
 
 import com.cyan.stargaze.dataset.enums.DataType;
 
 /**
- * 源库数据类型 -> 统一逻辑类型推断工具。
+ * 源库数据类型 -> 统一逻辑类型推断策略(领域值对象)。
  * <p>
- * 供 table/sql/join 字段解析共用。
+ * 供 table/sql/join/excel 字段解析共用;由领域对象或领域方法调用,禁止应用层直接依赖 infra 工具。
  *
  * @author cy.Y
  * @since 1.0.0
@@ -17,6 +17,9 @@ public final class DataTypeInferrer {
 
     /**
      * 按源库类型字符串(大小写不敏感,包含匹配)推断逻辑类型。
+     *
+     * @param sourceType 源库类型字符串
+     * @return 推断后的逻辑数据类型
      */
     public static DataType infer(String sourceType) {
         if (sourceType == null) {

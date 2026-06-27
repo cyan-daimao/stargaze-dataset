@@ -78,6 +78,14 @@ public class DatasetFieldDO {
     @TableField("ord")
     private Integer ord;
 
+    /** 创建人 */
+    @TableField("created_by")
+    private String createdBy;
+
+    /** 修改人 */
+    @TableField("updated_by")
+    private String updatedBy;
+
     /** 创建时间 */
     @TableField("created_at")
     private OffsetDateTime createdAt;

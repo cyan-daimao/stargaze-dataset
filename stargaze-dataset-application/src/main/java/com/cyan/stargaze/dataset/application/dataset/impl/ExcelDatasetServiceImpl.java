@@ -2,14 +2,14 @@ package com.cyan.stargaze.dataset.application.dataset.impl;
 
 import com.cyan.stargaze.dataset.application.dataset.DatasetFileService;
 import com.cyan.stargaze.dataset.application.dataset.ExcelDatasetService;
+import com.cyan.stargaze.dataset.application.dataset.bo.ColumnBO;
 import com.cyan.stargaze.dataset.application.dataset.bo.DatasetFieldBO;
-import com.cyan.stargaze.dataset.domain.dataset.DatasetFile;
+import com.cyan.stargaze.dataset.application.dataset.bo.DatasetFileBO;
+import com.cyan.stargaze.dataset.application.dataset.bo.TableSampleBO;
+import com.cyan.stargaze.dataset.application.dataset.bo.TableSchemaBO;
 import com.cyan.stargaze.dataset.domain.dataset.config.ExcelConfig;
-import com.cyan.stargaze.dataset.domain.datasource.valobj.ColumnValObj;
 import com.cyan.stargaze.dataset.domain.datasource.valobj.TableSampleValObj;
-import com.cyan.stargaze.dataset.domain.datasource.valobj.TableSchemaValObj;
 import com.cyan.stargaze.dataset.enums.FieldType;
-import com.cyan.stargaze.dataset.infra.util.DataTypeInferrer;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -30,15 +30,15 @@ public class ExcelDatasetServiceImpl implements ExcelDatasetService {
 
     @Override
     public List<DatasetFieldBO> resolveFields(ExcelConfig config) {
-        DatasetFile file = datasetFileService.getFile(config.getFileId());
-        TableSchemaValObj schema = datasetFileService.schema(config.getFileId(), config.getSheetName(), 1);
+        DatasetFileBO file = datasetFileService.getFile(config.getFileId());
+        TableSchemaBO schema = datasetFileService.schema(config.getFileId(), config.getSheetName(), 1);
         List<DatasetFieldBO> fields = new ArrayList<>();
         int ord = 1;
-        for (ColumnValObj column : schema.getColumns()) {
+        for (ColumnBO column : schema.getColumns()) {
             fields.add(new DatasetFieldBO()
                     .setFieldName(column.getName())
                     .setDisplayName(column.getName())
-                    .setDataType(DataTypeInferrer.infer(column.getDataType()).toDisplayType())
+                    .setDataType(column.getSuggestedType())
                     .setFieldType(FieldType.DIMENSION)
                     .setSourceTable(file == null ? null : file.getFileName())
                     .setIsEnabled(true)
@@ -49,13 +49,15 @@ public class ExcelDatasetServiceImpl implements ExcelDatasetService {
 
     @Override
     public TableSampleValObj preview(ExcelConfig config, int limit) {
-        return datasetFileService.sample(config.getFileId(), config.getSheetName(), 1, limit);
+        TableSampleBO sample = datasetFileService.sample(config.getFileId(), config.getSheetName(), 1, limit);
+        // 为了保持 ExcelDatasetService 契约与 SQL/JOIN 预览返回类型一致,临时做 BO -> Domain 值对象转换
+        return new TableSampleValObj().setColumns(sample.getColumns()).setRows(sample.getRows());
     }
 
     @Override
     public Long rowCount(ExcelConfig config) {
         try {
-            TableSchemaValObj schema = datasetFileService.schema(config.getFileId(), config.getSheetName(), 1);
+            TableSchemaBO schema = datasetFileService.schema(config.getFileId(), config.getSheetName(), 1);
             return schema.getRowCount();
         } catch (Exception e) {
             return null;

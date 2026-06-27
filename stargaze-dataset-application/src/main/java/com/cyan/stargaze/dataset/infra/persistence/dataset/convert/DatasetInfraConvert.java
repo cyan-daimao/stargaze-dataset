@@ -25,6 +25,8 @@ public abstract class DatasetInfraConvert {
     @Mapping(target = "createdBy", source = "createdBy", qualifiedByName = "longToString")
     @Mapping(target = "updatedBy", source = "updatedBy", qualifiedByName = "longToString")
     @Mapping(target = "fields", ignore = true)
+    @Mapping(target = "save", ignore = true)
+    @Mapping(target = "update", ignore = true)
     public abstract Dataset toDataset(DatasetDO datasetDO);
 
     @Mapping(target = "id", source = "id", qualifiedByName = "stringToLong")

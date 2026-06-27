@@ -3,6 +3,7 @@ package com.cyan.stargaze.dataset.application.dataset.impl;
 import com.cyan.arch.common.api.Assert;
 import com.cyan.arch.common.api.SilentException;
 import com.cyan.stargaze.dataset.application.dataset.MaterializedViewService;
+import com.cyan.stargaze.dataset.application.dataset.bo.MaterializedViewBO;
 import com.cyan.stargaze.dataset.application.dataset.cmd.MaterializedViewCmd;
 import com.cyan.stargaze.dataset.application.dataset.convert.DatasetAuxiliaryAppConvert;
 import com.cyan.stargaze.dataset.domain.dataset.MaterializedView;
@@ -30,19 +31,21 @@ public class MaterializedViewServiceImpl implements MaterializedViewService {
 
     @Override
     @Transactional
-    public MaterializedView create(MaterializedViewCmd cmd) {
+    public MaterializedViewBO create(MaterializedViewCmd cmd) {
         MaterializedView view = convert.toMaterializedView(cmd);
-        return view.save(repository);
+        view = view.save(repository);
+        return convert.toMaterializedViewBO(view);
     }
 
     @Override
     @Transactional
-    public MaterializedView update(MaterializedViewCmd cmd) {
+    public MaterializedViewBO update(MaterializedViewCmd cmd) {
         MaterializedView existing = repository.findById(cmd.getId());
         Assert.notNull(existing, new SilentException("物化加速配置不存在"));
         MaterializedView view = convert.toMaterializedView(cmd);
         view.setId(existing.getId());
-        return view.update(repository);
+        view = view.update(repository);
+        return convert.toMaterializedViewBO(view);
     }
 
     @Override
@@ -54,7 +57,7 @@ public class MaterializedViewServiceImpl implements MaterializedViewService {
     }
 
     @Override
-    public List<MaterializedView> listByDatasetId(String datasetId) {
-        return repository.listByDatasetId(datasetId);
+    public List<MaterializedViewBO> listByDatasetId(String datasetId) {
+        return convert.toMaterializedViewBOList(repository.listByDatasetId(datasetId));
     }
 }

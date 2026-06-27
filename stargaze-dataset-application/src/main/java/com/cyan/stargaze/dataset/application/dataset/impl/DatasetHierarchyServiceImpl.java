@@ -3,6 +3,7 @@ package com.cyan.stargaze.dataset.application.dataset.impl;
 import com.cyan.arch.common.api.Assert;
 import com.cyan.arch.common.api.SilentException;
 import com.cyan.stargaze.dataset.application.dataset.DatasetHierarchyService;
+import com.cyan.stargaze.dataset.application.dataset.bo.DatasetHierarchyBO;
 import com.cyan.stargaze.dataset.application.dataset.cmd.DatasetHierarchyCmd;
 import com.cyan.stargaze.dataset.application.dataset.convert.DatasetAuxiliaryAppConvert;
 import com.cyan.stargaze.dataset.domain.dataset.DatasetHierarchy;
@@ -28,29 +29,33 @@ public class DatasetHierarchyServiceImpl implements DatasetHierarchyService {
 
     @Override
     @Transactional
-    public DatasetHierarchy create(DatasetHierarchyCmd cmd) {
+    public DatasetHierarchyBO create(DatasetHierarchyCmd cmd) {
         DatasetHierarchy hierarchy = convert.toHierarchy(cmd);
-        return repository.save(hierarchy);
+        hierarchy = hierarchy.save(repository);
+        return convert.toHierarchyBO(hierarchy);
     }
 
     @Override
     @Transactional
-    public DatasetHierarchy update(DatasetHierarchyCmd cmd) {
+    public DatasetHierarchyBO update(DatasetHierarchyCmd cmd) {
         DatasetHierarchy existing = repository.findById(cmd.getId());
         Assert.notNull(existing, new SilentException("维度层级不存在"));
         DatasetHierarchy hierarchy = convert.toHierarchy(cmd);
         hierarchy.setId(existing.getId());
-        return repository.update(hierarchy);
+        hierarchy = hierarchy.update(repository);
+        return convert.toHierarchyBO(hierarchy);
     }
 
     @Override
     @Transactional
     public void delete(String id) {
-        repository.deleteById(id);
+        DatasetHierarchy hierarchy = repository.findById(id);
+        Assert.notNull(hierarchy, new SilentException("维度层级不存在"));
+        hierarchy.delete(repository);
     }
 
     @Override
-    public List<DatasetHierarchy> listByDatasetId(String datasetId) {
-        return repository.listByDatasetId(datasetId);
+    public List<DatasetHierarchyBO> listByDatasetId(String datasetId) {
+        return convert.toHierarchyBOList(repository.listByDatasetId(datasetId));
     }
 }

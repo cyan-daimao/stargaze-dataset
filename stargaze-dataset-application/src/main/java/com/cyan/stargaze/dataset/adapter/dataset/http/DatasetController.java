@@ -4,17 +4,19 @@ import com.cyan.arch.common.api.Page;
 import com.cyan.arch.common.api.Response;
 import com.cyan.employee.client.dto.EmployeeDTO;
 import com.cyan.employee.login.filter.UserContextHolder;
-import com.cyan.stargaze.dataset.adapter.common.PageDTO;
 import com.cyan.stargaze.dataset.adapter.dataset.http.convert.DatasetAdapterConvert;
 import com.cyan.stargaze.dataset.adapter.dataset.http.dto.DatasetCreateDTO;
 import com.cyan.stargaze.dataset.adapter.dataset.http.dto.DatasetDeleteDTO;
 import com.cyan.stargaze.dataset.adapter.dataset.http.dto.DatasetDetailDTO;
+import com.cyan.stargaze.dataset.adapter.dataset.http.dto.DatasetHierarchyDTO;
 import com.cyan.stargaze.dataset.adapter.dataset.http.dto.DatasetListDTO;
+import com.cyan.stargaze.dataset.adapter.dataset.http.dto.DatasetParameterDTO;
 import com.cyan.stargaze.dataset.adapter.dataset.http.dto.DatasetSyncDTO;
 import com.cyan.stargaze.dataset.adapter.dataset.http.dto.DatasetSyncStatusDTO;
 import com.cyan.stargaze.dataset.adapter.dataset.http.dto.DatasetUpdateDTO;
 import com.cyan.stargaze.dataset.adapter.dataset.http.dto.ExcelPreviewDTO;
 import com.cyan.stargaze.dataset.adapter.dataset.http.dto.ExcelUploadDTO;
+import com.cyan.stargaze.dataset.adapter.dataset.http.dto.MaterializedViewDTO;
 import com.cyan.stargaze.dataset.adapter.dataset.http.dto.SqlPreviewDTO;
 import com.cyan.stargaze.dataset.adapter.dataset.http.dto.TableFieldsDTO;
 import com.cyan.stargaze.dataset.adapter.dataset.http.dto.TableListDTO;
@@ -27,7 +29,9 @@ import com.cyan.stargaze.dataset.application.dataset.DatasetParameterService;
 import com.cyan.stargaze.dataset.application.dataset.DatasetService;
 import com.cyan.stargaze.dataset.application.dataset.MaterializedViewService;
 import com.cyan.stargaze.dataset.application.dataset.bo.DatasetBO;
+import com.cyan.stargaze.dataset.application.dataset.bo.DatasetFileBO;
 import com.cyan.stargaze.dataset.application.dataset.bo.ExcelPreviewBO;
+import com.cyan.stargaze.dataset.application.dataset.bo.ExcelSheetBO;
 import com.cyan.stargaze.dataset.application.dataset.bo.SqlPreviewBO;
 import com.cyan.stargaze.dataset.application.dataset.cmd.DatasetCreateCmd;
 import com.cyan.stargaze.dataset.application.dataset.cmd.DatasetHierarchyCmd;
@@ -37,9 +41,6 @@ import com.cyan.stargaze.dataset.application.dataset.cmd.DatasetUpdateCmd;
 import com.cyan.stargaze.dataset.application.dataset.cmd.MaterializedViewCmd;
 import com.cyan.stargaze.dataset.application.dataset.cmd.SqlPreviewCmd;
 import com.cyan.stargaze.dataset.application.datasource.DatasourceService;
-import com.cyan.stargaze.dataset.domain.dataset.DatasetHierarchy;
-import com.cyan.stargaze.dataset.domain.dataset.DatasetParameter;
-import com.cyan.stargaze.dataset.domain.dataset.MaterializedView;
 import com.cyan.stargaze.dataset.domain.dataset.query.DatasetListQuery;
 import com.cyan.stargaze.dataset.enums.DatasetSourceType;
 import com.cyan.stargaze.dataset.enums.DatasetStatus;
@@ -95,17 +96,17 @@ public class DatasetController {
     // ==================== 1. 列表 ====================
 
     @GetMapping
-    public Response<PageDTO<DatasetListDTO>> page(
+    public Response<Page<DatasetListDTO>> page(
             @RequestParam(value = "page", defaultValue = "1") int page,
             @RequestParam(value = "size", defaultValue = "20") int size,
             @RequestParam(value = "keyword", required = false) String keyword,
-            @RequestParam(value = "source_type", required = false) DatasetSourceType sourceType,
+            @RequestParam(value = "sourceType", required = false) DatasetSourceType sourceType,
             @RequestParam(value = "status", required = false) DatasetStatus status) {
         DatasetListQuery query = new DatasetListQuery()
                 .setPage(page).setSize(size).setKeyword(keyword).setSourceType(sourceType).setStatus(status);
         Page<com.cyan.stargaze.dataset.application.dataset.bo.DatasetListBO> p = datasetService.page(query);
         List<DatasetListDTO> list = DatasetAdapterConvert.INSTANCE.toDatasetListDTOList(p.getData());
-        return Response.success(new PageDTO<>(list, p.getTotal(), (int) p.getCurrent(), (int) p.getSize()));
+        return Response.success(new Page<>(list, p.getCurrent(), p.getSize(), p.getTotal()));
     }
 
     // ==================== 2. 创建 ====================
@@ -160,7 +161,7 @@ public class DatasetController {
     // ==================== 7. 表列表 ====================
 
     @GetMapping("/tables")
-    public Response<TableListDTO> listTables(@RequestParam("datasource_id") String datasourceId,
+    public Response<TableListDTO> listTables(@RequestParam("datasourceId") String datasourceId,
                                              @RequestParam(value = "schema", required = false) String schema,
                                              @RequestParam(value = "keyword", required = false) String keyword) {
         boolean supportsSchema = datasourceService.supportsSchema(datasourceId);
@@ -192,7 +193,7 @@ public class DatasetController {
     @GetMapping("/tables/{schema}/{tableName}/fields")
     public Response<TableFieldsDTO> tableFields(@PathVariable("schema") String schema,
                                                 @PathVariable("tableName") String tableName,
-                                                @RequestParam("datasource_id") String datasourceId) {
+                                                @RequestParam("datasourceId") String datasourceId) {
         com.cyan.stargaze.dataset.domain.datasource.valobj.TableSchemaValObj valObj =
                 datasourceService.describeTable(datasourceId, schema, tableName);
         return Response.success(DatasetAdapterConvert.INSTANCE.toTableFieldsDTO(valObj));
@@ -202,11 +203,10 @@ public class DatasetController {
 
     @PostMapping("/upload")
     public Response<ExcelUploadDTO> upload(@RequestParam("file") MultipartFile file) {
-        com.cyan.stargaze.dataset.application.dataset.bo.DatasetFileBO fileBO =
-                datasetFileService.upload(file);
+        DatasetFileBO fileBO = datasetFileService.upload(file);
         List<String> sheetNames = Optional.ofNullable(datasetFileService.listSheets(fileBO.getId()))
                 .orElse(List.of()).stream()
-                .map(com.cyan.stargaze.dataset.domain.dataset.valobj.ExcelSheetValObj::getName)
+                .map(ExcelSheetBO::getName)
                 .toList();
         ExcelUploadDTO dto = new ExcelUploadDTO()
                 .setFileId(fileBO.getId())
@@ -221,12 +221,11 @@ public class DatasetController {
 
     @GetMapping("/preview/{fileId}")
     public Response<ExcelPreviewDTO> excelPreview(@PathVariable("fileId") String fileId,
-                                                  @RequestParam(value = "sheet_name", required = false) String sheetName,
+                                                  @RequestParam(value = "sheetName", required = false) String sheetName,
                                                   @RequestParam(value = "limit", defaultValue = "5") int limit) {
         // sheetName 为空取第一个 sheet
         if (sheetName == null || sheetName.isBlank()) {
-            List<com.cyan.stargaze.dataset.domain.dataset.valobj.ExcelSheetValObj> sheets =
-                    datasetFileService.listSheets(fileId);
+            List<ExcelSheetBO> sheets = datasetFileService.listSheets(fileId);
             if (sheets == null || sheets.isEmpty()) {
                 throw new com.cyan.arch.common.api.SilentException("文件无可用工作表");
             }
@@ -253,15 +252,15 @@ public class DatasetController {
     // ==================== 维度层级 ====================
 
     @PostMapping("/{id}/hierarchies")
-    public Response<DatasetHierarchy> createHierarchy(@PathVariable("id") String id,
-                                                      @RequestBody @Valid DatasetHierarchyCmd cmd) {
+    public Response<DatasetHierarchyDTO> createHierarchy(@PathVariable("id") String id,
+                                                         @RequestBody @Valid DatasetHierarchyCmd cmd) {
         cmd.setDatasetId(id);
-        return Response.success(hierarchyService.create(cmd));
+        return Response.success(DatasetAdapterConvert.INSTANCE.toDatasetHierarchyDTO(hierarchyService.create(cmd)));
     }
 
     @GetMapping("/{id}/hierarchies")
-    public Response<List<DatasetHierarchy>> listHierarchies(@PathVariable("id") String id) {
-        return Response.success(hierarchyService.listByDatasetId(id));
+    public Response<List<DatasetHierarchyDTO>> listHierarchies(@PathVariable("id") String id) {
+        return Response.success(DatasetAdapterConvert.INSTANCE.toDatasetHierarchyDTOList(hierarchyService.listByDatasetId(id)));
     }
 
     @DeleteMapping("/hierarchies/{hierarchyId}")
@@ -273,15 +272,15 @@ public class DatasetController {
     // ==================== 参数字段 ====================
 
     @PostMapping("/{id}/parameters")
-    public Response<DatasetParameter> createParameter(@PathVariable("id") String id,
-                                                      @RequestBody @Valid DatasetParameterCmd cmd) {
+    public Response<DatasetParameterDTO> createParameter(@PathVariable("id") String id,
+                                                         @RequestBody @Valid DatasetParameterCmd cmd) {
         cmd.setDatasetId(id);
-        return Response.success(parameterService.create(cmd));
+        return Response.success(DatasetAdapterConvert.INSTANCE.toDatasetParameterDTO(parameterService.create(cmd)));
     }
 
     @GetMapping("/{id}/parameters")
-    public Response<List<DatasetParameter>> listParameters(@PathVariable("id") String id) {
-        return Response.success(parameterService.listByDatasetId(id));
+    public Response<List<DatasetParameterDTO>> listParameters(@PathVariable("id") String id) {
+        return Response.success(DatasetAdapterConvert.INSTANCE.toDatasetParameterDTOList(parameterService.listByDatasetId(id)));
     }
 
     @DeleteMapping("/parameters/{parameterId}")
@@ -293,15 +292,15 @@ public class DatasetController {
     // ==================== 物化加速配置 ====================
 
     @PostMapping("/{id}/materialized-views")
-    public Response<MaterializedView> createMaterializedView(@PathVariable("id") String id,
-                                                             @RequestBody @Valid MaterializedViewCmd cmd) {
+    public Response<MaterializedViewDTO> createMaterializedView(@PathVariable("id") String id,
+                                                                @RequestBody @Valid MaterializedViewCmd cmd) {
         cmd.setDatasetId(id);
-        return Response.success(materializedViewService.create(cmd));
+        return Response.success(DatasetAdapterConvert.INSTANCE.toMaterializedViewDTO(materializedViewService.create(cmd)));
     }
 
     @GetMapping("/{id}/materialized-views")
-    public Response<List<MaterializedView>> listMaterializedViews(@PathVariable("id") String id) {
-        return Response.success(materializedViewService.listByDatasetId(id));
+    public Response<List<MaterializedViewDTO>> listMaterializedViews(@PathVariable("id") String id) {
+        return Response.success(DatasetAdapterConvert.INSTANCE.toMaterializedViewDTOList(materializedViewService.listByDatasetId(id)));
     }
 
     @DeleteMapping("/materialized-views/{viewId}")
