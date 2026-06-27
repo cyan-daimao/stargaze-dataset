@@ -15,17 +15,17 @@ import lombok.Getter;
 public enum DataType {
 
     /** 字符串 */
-    STRING("string", "字符串"),
+    STRING("STRING", "字符串"),
     /** 整数 */
-    INT("int", "整数"),
+    INT("INT", "整数"),
     /** 小数 */
-    DECIMAL("decimal", "小数"),
+    DECIMAL("DECIMAL", "小数"),
     /** 日期 */
-    DATE("date", "日期"),
+    DATE("DATE", "日期"),
     /** 日期时间 */
-    DATETIME("datetime", "日期时间"),
+    DATETIME("DATETIME", "日期时间"),
     /** 布尔 */
-    BOOLEAN("boolean", "布尔");
+    BOOLEAN("BOOLEAN", "布尔");
 
     /** 类型编码 */
     @EnumValue

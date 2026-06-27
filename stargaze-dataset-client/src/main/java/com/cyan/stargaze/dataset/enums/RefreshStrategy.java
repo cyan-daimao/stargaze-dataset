@@ -15,9 +15,9 @@ import lombok.Getter;
 public enum RefreshStrategy {
 
     /** 全量刷新 */
-    FULL("full", "全量"),
+    FULL("FULL", "全量"),
     /** 增量刷新 */
-    INCREMENTAL("incremental", "增量");
+    INCREMENTAL("INCREMENTAL", "增量");
 
     /** 策略编码 */
     @EnumValue

@@ -15,9 +15,9 @@ import lombok.Getter;
 public enum FieldType {
 
     /** 维度(用于分组、切片) */
-    DIMENSION("dimension", "维度"),
+    DIMENSION("DIMENSION", "维度"),
     /** 度量(用于聚合计算) */
-    MEASURE("measure", "度量");
+    MEASURE("MEASURE", "度量");
 
     /** 类型编码 */
     @EnumValue

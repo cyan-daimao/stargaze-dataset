@@ -18,23 +18,23 @@ import lombok.Getter;
 public enum DatasourceType {
 
     /** MySQL */
-    MYSQL("mysql", "MySQL"),
+    MYSQL("MYSQL", "MySQL"),
     /** PostgreSQL */
-    POSTGRESQL("postgresql", "PostgreSQL"),
+    POSTGRESQL("POSTGRESQL", "PostgreSQL"),
     /** StarRocks(OLAP,亦作物化加速目标引擎) */
-    STARROCKS("starrocks", "StarRocks"),
+    STARROCKS("STARROCKS", "StarRocks"),
     /** ClickHouse */
-    CLICKHOUSE("clickhouse", "ClickHouse"),
+    CLICKHOUSE("CLICKHOUSE", "ClickHouse"),
     /** Apache Doris */
-    DORIS("doris", "Doris"),
+    DORIS("DORIS", "Doris"),
     /** MaxCompute */
-    MAXCOMPUTE("maxcompute", "MaxCompute"),
+    MAXCOMPUTE("MAXCOMPUTE", "MaxCompute"),
     /** Excel 文件 */
-    EXCEL("excel", "Excel"),
+    EXCEL("EXCEL", "Excel"),
     /** CSV 文件 */
-    CSV("csv", "CSV"),
+    CSV("CSV", "CSV"),
     /** RESTful API(JSON) */
-    API("api", "API");
+    API("API", "API");
 
     /** 类型编码(入库 type 列) */
     @EnumValue

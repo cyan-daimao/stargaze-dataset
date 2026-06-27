@@ -17,19 +17,19 @@ import lombok.Getter;
 public enum JoinType {
 
     /** 内连接 */
-    INNER_JOIN("inner"),
+    INNER_JOIN("INNER"),
     /** 左连接 */
-    LEFT_JOIN("left"),
+    LEFT_JOIN("LEFT"),
     /** 右连接 */
-    RIGHT_JOIN("right"),
+    RIGHT_JOIN("RIGHT"),
     /** 全连接 */
-    FULL_JOIN("full");
+    FULL_JOIN("FULL");
 
     /** SQL 关键字编码 */
     private final String code;
 
     /**
-     * 返回 SQL 片段,如 "left join"
+     * 返回 SQL 片段,如 "LEFT join"
      */
     public String sql() {
         return code + " join";

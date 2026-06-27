@@ -15,11 +15,11 @@ import lombok.Getter;
 public enum DatasetStatus {
 
     /** 草稿 */
-    DRAFT("draft", "草稿"),
+    DRAFT("DRAFT", "草稿"),
     /** 已发布 */
-    PUBLISHED("published", "已发布"),
+    PUBLISHED("PUBLISHED", "已发布"),
     /** 已归档 */
-    ARCHIVED("archived", "已归档");
+    ARCHIVED("ARCHIVED", "已归档");
 
     /** 状态编码 */
     @EnumValue

@@ -33,7 +33,7 @@ CREATE TABLE data_source (
     type          VARCHAR(32)  NOT NULL,
     config_enc    TEXT,                                  -- 连接配置(AES-256-GCM 加密后的 JSON 密文)
     pool_config   TEXT,                                  -- 连接池配置(JSON 序列化字符串)
-    status        VARCHAR(16)  NOT NULL DEFAULT 'active',
+    status        VARCHAR(16)  NOT NULL DEFAULT 'ACTIVE',
     created_by    BIGINT,
     updated_by    BIGINT,
     created_at    TIMESTAMPTZ  NOT NULL DEFAULT now(),
@@ -61,7 +61,7 @@ CREATE TABLE dataset (
     definition     TEXT         NOT NULL,               -- 来源定义(JSON 序列化字符串)
     refresh_config TEXT,                                 -- 元数据刷新策略(JSON 序列化字符串)
     accelerations  TEXT,                                 -- 物化加速配置(JSON 序列化字符串)
-    status         VARCHAR(16)  NOT NULL DEFAULT 'published',
+    status         VARCHAR(16)  NOT NULL DEFAULT 'PUBLISHED',
     version        INT          NOT NULL DEFAULT 1,
     created_by     BIGINT,
     updated_by     BIGINT,
@@ -187,7 +187,7 @@ CREATE TABLE dataset_file (
     object_key    VARCHAR(512) NOT NULL,               -- S3 对象 key
     content_type  VARCHAR(128),                        -- 文件类型
     size          BIGINT,                              -- 文件大小(字节)
-    status        VARCHAR(16)  NOT NULL DEFAULT 'active',
+    status        VARCHAR(16)  NOT NULL DEFAULT 'ACTIVE',
     created_by    BIGINT,
     updated_by    BIGINT,
     created_at    TIMESTAMPTZ  NOT NULL DEFAULT now(),

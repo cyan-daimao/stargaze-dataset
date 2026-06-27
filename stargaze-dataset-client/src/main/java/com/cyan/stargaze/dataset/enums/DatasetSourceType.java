@@ -15,15 +15,15 @@ import lombok.Getter;
 public enum DatasetSourceType {
 
     /** 单表数据集(直接基于一张表) */
-    TABLE("table", "单表"),
+    TABLE("TABLE", "单表"),
     /** SQL 数据集(自定义 SQL) */
-    SQL("sql", "SQL"),
+    SQL("SQL", "SQL"),
     /** 多表关联(可视化 JOIN) */
-    JOIN("join", "多表关联"),
+    JOIN("JOIN", "多表关联"),
     /** Excel 数据集(上传文件入库) */
-    EXCEL("excel", "Excel"),
+    EXCEL("EXCEL", "Excel"),
     /** 数据集组合(UNION/JOIN,二期) */
-    UNION("union", "数据集组合");
+    UNION("UNION", "数据集组合");
 
     /** 类型编码 */
     @EnumValue

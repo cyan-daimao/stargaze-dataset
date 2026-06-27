@@ -15,11 +15,11 @@ import lombok.Getter;
 public enum CommonStatus {
 
     /** 正常/活跃 */
-    ACTIVE("active", "正常"),
+    ACTIVE("ACTIVE", "正常"),
     /** 异常 */
-    ERROR("error", "异常"),
+    ERROR("ERROR", "异常"),
     /** 停用 */
-    INACTIVE("inactive", "停用");
+    INACTIVE("INACTIVE", "停用");
 
     /** 状态编码 */
     @EnumValue
