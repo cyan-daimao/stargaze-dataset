@@ -64,6 +64,7 @@ public class DatasetBOAssembler {
             result.add(new DatasetListBO()
                     .setId(d.getId())
                     .setName(d.getName())
+                    .setDisplayName(d.getDisplayName())
                     .setDescription(d.getDescription())
                     .setSourceType(d.getSourceType())
                     .setSourceTypeName(d.getSourceType() == null ? null : d.getSourceType().getDisplayName())

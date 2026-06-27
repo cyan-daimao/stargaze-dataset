@@ -377,9 +377,13 @@ public class DatasetServiceImpl implements DatasetService {
         List<DatasetFieldBO> fields = new ArrayList<>();
         int ord = 1;
         for (ColumnValObj column : columns) {
+            String displayName = column.getComment();
+            if (displayName == null || displayName.isBlank()) {
+                displayName = column.getName();
+            }
             fields.add(new DatasetFieldBO()
                     .setFieldName(column.getName())
-                    .setDisplayName(column.getName())
+                    .setDisplayName(displayName)
                     .setDataType(column.getDataType())
                     .setFieldType(FieldType.DIMENSION)
                     .setSourceTable(sourceTable)

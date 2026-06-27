@@ -79,6 +79,7 @@ public class DatasetRpcController implements DatasetClient {
         return new DatasetListItemDTO()
                 .setId(bo.getId())
                 .setName(bo.getName())
+                .setDisplayName(bo.getDisplayName())
                 .setDescription(bo.getDescription())
                 .setSourceType(bo.getSourceType() == null ? null : bo.getSourceType().name())
                 .setSourceTypeName(bo.getSourceTypeName())

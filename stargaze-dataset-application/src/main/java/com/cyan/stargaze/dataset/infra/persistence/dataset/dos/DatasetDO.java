@@ -35,6 +35,10 @@ public class DatasetDO {
     @TableField("name")
     private String name;
 
+    /** 数据集显示名称 */
+    @TableField("display_name")
+    private String displayName;
+
     /** 描述 */
     @TableField("description")
     private String description;

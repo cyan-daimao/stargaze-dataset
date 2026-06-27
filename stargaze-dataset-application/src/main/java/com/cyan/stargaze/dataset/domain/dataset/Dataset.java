@@ -37,6 +37,9 @@ public class Dataset {
     /** 数据集名称(全局唯一) */
     private String name;
 
+    /** 数据集显示名称 */
+    private String displayName;
+
     /** 描述 */
     private String description;
 
