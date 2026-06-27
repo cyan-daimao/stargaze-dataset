@@ -5,7 +5,6 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.cyan.stargaze.dataset.enums.Aggregation;
 import com.cyan.stargaze.dataset.enums.FieldType;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -54,10 +53,6 @@ public class DatasetFieldDO {
     /** 数据类型(原始 DB 类型串) */
     @TableField("data_type")
     private String dataType;
-
-    /** 聚合方式(度量字段) */
-    @TableField("aggregation")
-    private Aggregation aggregation;
 
     /** 来源表名 */
     @TableField("source_table")

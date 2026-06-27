@@ -130,7 +130,7 @@ public class Dataset {
     /**
      * 刷新字段合并:按 originName 匹配,命中保留旧配置仅刷新 dataType/sourceTable,新增追加 ord,删除丢弃。
      * <p>
-     * 保持 ord/alias/displayName/isEnabled/aggregation 等用户配置稳定,避免前端展示抖动。
+     * 保持 ord/alias/displayName/isEnabled 等用户配置稳定,避免前端展示抖动。
      *
      * @param existing 既有字段
      * @param fresh    源端最新解析字段(含 originName/dataType/sourceTable)

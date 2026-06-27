@@ -1,6 +1,5 @@
 package com.cyan.stargaze.dataset.adapter.dataset.http.dto;
 
-import com.cyan.stargaze.dataset.enums.Aggregation;
 import com.cyan.stargaze.dataset.enums.FieldType;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -33,9 +32,6 @@ public class DatasetFieldDTO {
 
     /** 字段类型(维度/度量) */
     private FieldType fieldType;
-
-    /** 聚合方式 */
-    private Aggregation aggregation;
 
     /** 是否启用 */
     private Boolean isEnabled;

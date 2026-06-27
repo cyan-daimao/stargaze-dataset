@@ -90,7 +90,6 @@ CREATE TABLE dataset_field (
     display_name  VARCHAR(200),                        -- 显示名称
     field_type    VARCHAR(16)  NOT NULL,               -- 字段类型:dimension/measure
     data_type     VARCHAR(64)  NOT NULL,               -- 数据类型(原始 DB 类型串)
-    aggregation   VARCHAR(20),                         -- 聚合方式(度量字段)
     source_table  VARCHAR(200),                        -- 来源表名
     is_enabled    BOOLEAN      NOT NULL DEFAULT TRUE,  -- 是否启用
     semantic_type TEXT,                                -- 基础语义标注(JSON 序列化字符串)
@@ -105,7 +104,6 @@ COMMENT ON TABLE dataset_field IS '数据集字段(维度/度量,物理字段)';
 COMMENT ON COLUMN dataset_field.origin_name IS '物理字段名';
 COMMENT ON COLUMN dataset_field.field_type IS '字段类型:dimension/measure';
 COMMENT ON COLUMN dataset_field.data_type IS '数据类型(原始 DB 类型串)';
-COMMENT ON COLUMN dataset_field.aggregation IS '聚合方式(度量字段)';
 COMMENT ON COLUMN dataset_field.is_enabled IS '是否启用';
 COMMENT ON COLUMN dataset_field.ord IS '排序序号';
 

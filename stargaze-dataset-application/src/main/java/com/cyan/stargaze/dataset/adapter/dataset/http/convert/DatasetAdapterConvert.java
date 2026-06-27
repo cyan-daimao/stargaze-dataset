@@ -160,6 +160,8 @@ public interface DatasetAdapterConvert {
         return new com.cyan.stargaze.dataset.client.dto.DatasetFieldDTO()
                 .setId(bo.getId())
                 .setDatasetId(bo.getDatasetId())
+                .setFieldName(bo.getFieldName())
+                .setDisplayName(bo.getDisplayName())
                 .setOriginName(bo.getFieldName())
                 .setAlias(bo.getDisplayName())
                 .setDataType(com.cyan.stargaze.dataset.infra.util.DataTypeInferrer.infer(bo.getDataType()))

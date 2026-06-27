@@ -1,6 +1,5 @@
 package com.cyan.stargaze.dataset.application.dataset.cmd;
 
-import com.cyan.stargaze.dataset.enums.Aggregation;
 import com.cyan.stargaze.dataset.enums.FieldType;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -38,9 +37,6 @@ public class DatasetFieldCmd {
     /** 字段类型(维度/度量) */
     @NotNull(message = "字段类型不能为空")
     private FieldType fieldType;
-
-    /** 聚合方式(度量字段) */
-    private Aggregation aggregation;
 
     /** 来源表名(多表关联时) */
     private String sourceTable;

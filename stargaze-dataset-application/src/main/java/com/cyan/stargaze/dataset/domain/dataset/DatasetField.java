@@ -2,7 +2,6 @@ package com.cyan.stargaze.dataset.domain.dataset;
 
 import com.cyan.arch.common.api.Assert;
 import com.cyan.arch.common.api.SilentException;
-import com.cyan.stargaze.dataset.enums.Aggregation;
 import com.cyan.stargaze.dataset.enums.FieldType;
 import com.cyan.stargaze.dataset.infra.util.DataTypeInferrer;
 import lombok.AllArgsConstructor;
@@ -47,9 +46,6 @@ public class DatasetField {
 
     /** 数据类型(原始 DB 类型串,如 BIGINT/VARCHAR/DECIMAL(18,2)) */
     private String dataType;
-
-    /** 聚合方式(度量字段,可空) */
-    private Aggregation aggregation;
 
     /** 来源表名(多表关联时,可空) */
     private String sourceTable;

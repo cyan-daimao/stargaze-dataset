@@ -26,9 +26,15 @@ public class DatasetFieldDTO {
     private String datasetId;
 
     /** 物理字段名(源表真实列名) */
+    private String fieldName;
+
+    /** 显示名称 */
+    private String displayName;
+
+    /** 物理字段名(源表真实列名,同 fieldName) */
     private String originName;
 
-    /** 字段别名 */
+    /** 字段别名(同 displayName) */
     private String alias;
 
     /** 字段类型(dimension/measure) */
