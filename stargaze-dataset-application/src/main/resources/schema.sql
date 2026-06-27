@@ -54,6 +54,7 @@ CREATE INDEX idx_data_source_status ON data_source (status) WHERE deleted_at IS 
 CREATE TABLE dataset (
     id             BIGINT       PRIMARY KEY,
     name           VARCHAR(128) NOT NULL,
+    display_name   VARCHAR(200),                        -- 数据集显示名称
     description    VARCHAR(500),                        -- 描述
     source_type    VARCHAR(16)  NOT NULL,               -- 来源类型: table/sql/join/excel/union
     data_source_id BIGINT,
@@ -69,6 +70,7 @@ CREATE TABLE dataset (
     deleted_at     TIMESTAMPTZ
 );
 COMMENT ON TABLE dataset IS '数据集(分析模型,提供物理字段)';
+COMMENT ON COLUMN dataset.display_name IS '数据集显示名称';
 COMMENT ON COLUMN dataset.source_type IS '来源类型:table/sql/join/excel/union';
 COMMENT ON COLUMN dataset.definition IS '来源定义(JSON 序列化字符串)';
 COMMENT ON COLUMN dataset.refresh_config IS '元数据刷新策略(JSON 序列化字符串)';
