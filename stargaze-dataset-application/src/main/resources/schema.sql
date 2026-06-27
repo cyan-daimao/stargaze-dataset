@@ -98,6 +98,8 @@ CREATE TABLE dataset_field (
     format        TEXT,                                -- 格式(JSON 序列化字符串)
     dictionary_id BIGINT,
     ord           INT          NOT NULL DEFAULT 0,     -- 排序序号
+    created_by    VARCHAR(64),                         -- 创建人
+    updated_by    VARCHAR(64),                         -- 修改人
     created_at    TIMESTAMPTZ  NOT NULL DEFAULT now(),
     updated_at    TIMESTAMPTZ  NOT NULL DEFAULT now(),
     deleted_at    TIMESTAMPTZ
@@ -120,6 +122,8 @@ CREATE TABLE dataset_hierarchy (
     dataset_id BIGINT       NOT NULL,
     name       VARCHAR(128) NOT NULL,                  -- 层级名称
     levels     TEXT         NOT NULL,                  -- 层级定义(JSON 序列化字符串)
+    created_by VARCHAR(64),                          -- 创建人
+    updated_by VARCHAR(64),                          -- 修改人
     created_at TIMESTAMPTZ  NOT NULL DEFAULT now(),
     updated_at TIMESTAMPTZ  NOT NULL DEFAULT now(),
     deleted_at TIMESTAMPTZ
@@ -139,6 +143,8 @@ CREATE TABLE dataset_parameter (
     alias         VARCHAR(128),                        -- 参数别名
     data_type     VARCHAR(32)  NOT NULL,               -- 数据类型
     default_value TEXT,                                -- 默认值
+    created_by    VARCHAR(64),                         -- 创建人
+    updated_by    VARCHAR(64),                         -- 修改人
     created_at    TIMESTAMPTZ  NOT NULL DEFAULT now(),
     updated_at    TIMESTAMPTZ  NOT NULL DEFAULT now(),
     deleted_at    TIMESTAMPTZ,
