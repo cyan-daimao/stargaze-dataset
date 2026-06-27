@@ -97,11 +97,20 @@ public class DatasourceController {
     }
 
     /**
-     * 测试连接
+     * 测试连接(已存在数据源)
      */
     @PostMapping("/{id}/test")
     public Response<Void> testConnection(@PathVariable("id") String id) {
         datasourceService.testConnection(id);
+        return Response.success();
+    }
+
+    /**
+     * 测试连接(仅根据配置,不保存)
+     */
+    @PostMapping("/test")
+    public Response<Void> testConnection(@RequestBody @Valid DatasourceCmd cmd) {
+        datasourceService.testConnection(cmd);
         return Response.success();
     }
 

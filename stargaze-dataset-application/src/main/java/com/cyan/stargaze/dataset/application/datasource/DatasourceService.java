@@ -43,9 +43,14 @@ public interface DatasourceService {
     void delete(String id);
 
     /**
-     * 测试连接
+     * 测试连接(已存在数据源)
      */
     void testConnection(String id);
+
+    /**
+     * 测试连接(仅根据配置,不保存)
+     */
+    void testConnection(DatasourceCmd cmd);
 
     /**
      * 当前数据源是否支持独立的 schema 层。

@@ -91,6 +91,14 @@ public class DatasourceServiceImpl implements DatasourceService {
     }
 
     @Override
+    public void testConnection(DatasourceCmd cmd) {
+        DataSource dataSource = convert.toDataSource(cmd);
+        dataSource.validate();
+        DataSourceConnector connector = connectorFactory.get(dataSource.getType());
+        connector.testConnection(dataSource.getConfig());
+    }
+
+    @Override
     public boolean supportsSchema(String id) {
         DataSource dataSource = dataSourceRepository.findById(id);
         Assert.notNull(dataSource, new SilentException("数据源不存在"));

@@ -64,7 +64,7 @@ public class DataSource {
     /**
      * 校验必填项
      */
-    private void validate() {
+    public void validate() {
         Assert.notBlank(this.name, new SilentException("数据源名称不能为空"));
         Assert.notNull(this.type, new SilentException("数据源类型不能为空"));
         Assert.notNull(this.config, new SilentException("数据源连接配置不能为空"));
