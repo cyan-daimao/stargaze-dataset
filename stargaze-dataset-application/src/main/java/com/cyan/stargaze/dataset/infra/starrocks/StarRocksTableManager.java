@@ -91,12 +91,11 @@ public class StarRocksTableManager {
     }
 
     /**
-     * 确保 external catalog 存在。缺少 driver 配置时跳过创建,由查询阶段暴露明确错误。
+     * 确保 external catalog 存在。
      */
     public void ensureExternalCatalog(String catalogName, DataSource dataSource) {
         if (properties.getJdbcDriverUrl() == null || properties.getJdbcDriverUrl().isBlank()) {
-            log.warn("StarRocks external catalog 未自动创建,缺少 starrocks.jdbc-driver-url, catalog={}", catalogName);
-            return;
+            throw new SilentException("StarRocks external catalog 创建失败:缺少 starrocks.jdbc-driver-url");
         }
         DataSourceConfig config = dataSource.getConfig();
         String jdbcUri = jdbcUri(dataSource.getType(), config);
