@@ -18,6 +18,9 @@ public class DatasetStarRocksProperties {
     /** JDBC URL */
     private String url;
 
+    /** JDBC URL(url 的配置别名,兼容 starrocks.jdbc-url) */
+    private String jdbcUrl;
+
     /** 用户名 */
     private String username;
 
@@ -38,4 +41,8 @@ public class DatasetStarRocksProperties {
 
     /** StarRocks JDBC catalog 驱动类名 */
     private String jdbcDriverClass;
+
+    public String getUrl() {
+        return url == null || url.isBlank() ? jdbcUrl : url;
+    }
 }

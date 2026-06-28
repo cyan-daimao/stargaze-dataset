@@ -15,6 +15,7 @@ import com.cyan.stargaze.dataset.domain.datasource.valobj.TableSampleValObj;
 import com.cyan.stargaze.dataset.domain.datasource.valobj.TableSchemaValObj;
 import com.cyan.stargaze.dataset.infra.connector.DataSourceConnector;
 import com.cyan.stargaze.dataset.infra.connector.DataSourceConnectorFactory;
+import com.cyan.stargaze.dataset.infra.starrocks.StarRocksTableManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -36,12 +37,14 @@ public class DatasourceServiceImpl implements DatasourceService {
     private final DataSourceRepository dataSourceRepository;
     private final DataSourceConnectorFactory connectorFactory;
     private final DatasourceAppConvert convert;
+    private final StarRocksTableManager starRocksTableManager;
 
     @Override
     @Transactional
     public DatasourceBO create(DatasourceCmd cmd) {
         DataSource dataSource = convert.toDataSource(cmd);
         dataSource = dataSource.save(dataSourceRepository);
+        ensureCatalog(dataSource);
         return convert.toDatasourceBO(dataSource);
     }
 
@@ -54,6 +57,7 @@ public class DatasourceServiceImpl implements DatasourceService {
         // 名称唯一性由 domain.save 之外,update 复用 existing id
         dataSource.setId(existing.getId());
         dataSource = dataSource.update(dataSourceRepository);
+        ensureCatalog(dataSource);
         return convert.toDatasourceBO(dataSource);
     }
 
@@ -145,5 +149,10 @@ public class DatasourceServiceImpl implements DatasourceService {
         Assert.notNull(dataSource, new SilentException("数据源不存在"));
         DataSourceConnector connector = connectorFactory.get(dataSource.getType());
         return connector.sampleTable(dataSource.getConfig(), schema, tableName, limit);
+    }
+
+    private void ensureCatalog(DataSource dataSource) {
+        String catalogName = "ds_" + dataSource.getId();
+        starRocksTableManager.ensureExternalCatalog(catalogName, dataSource);
     }
 }
