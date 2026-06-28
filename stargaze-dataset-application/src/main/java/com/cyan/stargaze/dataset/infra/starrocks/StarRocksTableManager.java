@@ -193,15 +193,23 @@ public class StarRocksTableManager {
         return value;
     }
 
+    /**
+     * 构造 StarRocks External Catalog 使用的 JDBC URI。
+     * <p>
+     * <b>重要:</b> {@code jdbc_uri} 不得包含数据库名路径段。
+     * StarRocks BE 在 JDBCScanner 扫描时，会基于 catalog 的 jdbc_uri
+     * 再追加目标数据库名，若 jdbc_uri 已含库名将导致双段错误：
+     * {@code jdbc:mysql://host:port/db/db}。
+     * </p>
+     */
     private String jdbcUri(DatasourceType type, DataSourceConfig config) {
         if (config.getJdbcUrl() != null && !config.getJdbcUrl().isBlank()) {
-            return normalizeJdbcUrl(config.getJdbcUrl());
+            return stripDatabasePath(normalizeJdbcUrl(config.getJdbcUrl()));
         }
-        String database = config.getDatabase() == null ? "" : "/" + config.getDatabase();
         return switch (type) {
-            case POSTGRESQL -> "jdbc:postgresql://" + config.getHost() + ":" + config.getPort() + database;
-            case MYSQL, STARROCKS, DORIS -> "jdbc:mysql://" + config.getHost() + ":" + config.getPort() + database;
-            case CLICKHOUSE -> "jdbc:clickhouse://" + config.getHost() + ":" + config.getPort() + database;
+            case POSTGRESQL -> "jdbc:postgresql://" + config.getHost() + ":" + config.getPort();
+            case MYSQL, STARROCKS, DORIS -> "jdbc:mysql://" + config.getHost() + ":" + config.getPort();
+            case CLICKHOUSE -> "jdbc:clickhouse://" + config.getHost() + ":" + config.getPort();
             default -> throw new SilentException("暂不支持创建该数据源 catalog: " + type);
         };
     }
@@ -209,13 +217,9 @@ public class StarRocksTableManager {
     /**
      * 标准化 JDBC URL，去除重复的数据库路径段。
      * <p>
-     * MariaDB Connector/J 3.x 严格校验 URL 格式，
-     * 不接受 {@code jdbc:mysql://host:port/db/db} 这种双路径格式，
-     * 而有些数据源配置中可能存储了带重复段的 URL。
+     * MariaDB Connector/J 3.x 不接受 {@code jdbc:mysql://host:port/db/db} 格式。
+     * 此方法先将重复段合并为单段，后续由 {@link #stripDatabasePath} 移除库名。
      * </p>
-     *
-     * @param jdbcUrl 原始 JDBC URL
-     * @return 标准化后的 URL（只保留第一个路径段作为数据库名）
      */
     private String normalizeJdbcUrl(String jdbcUrl) {
         if (jdbcUrl == null || jdbcUrl.isBlank()) {
@@ -232,6 +236,23 @@ public class StarRocksTableManager {
             log.info("标准化 JDBC URL, 原值={}, 标准化后={}", jdbcUrl, normalized);
         }
         return normalized;
+    }
+
+    /**
+     * 从 JDBC URL 中移除数据库名路径段，保留查询参数。
+     * <p>
+     * StarRocks External Catalog 由 BE 内部控制目标库名，
+     * jdbc_uri 只需指向数据库服务器。若 jdbc_uri 含库名，
+     * BE 在 JDBCScanner 扫描时会再追加一次库名，导致双段错误。
+     * </p>
+     */
+    private String stripDatabasePath(String jdbcUrl) {
+        if (jdbcUrl == null || jdbcUrl.isBlank()) {
+            return jdbcUrl;
+        }
+        // jdbc:mysql://10.0.0.2:3306/cyan_dataman?useSSL=false
+        // → jdbc:mysql://10.0.0.2:3306?useSSL=false
+        return jdbcUrl.trim().replaceAll("^(jdbc:[a-z]+://[^/]+)/[^/?]*(\\?.*)?$", "$1$2");
     }
 
     private String driverUrl(DatasourceType type) {
@@ -273,13 +294,21 @@ public class StarRocksTableManager {
              Statement statement = connection.createStatement();
              ResultSet resultSet = statement.executeQuery(sql)) {
             if (!resultSet.next()) {
+                log.info("catalog={} 不存在(空结果集),需重建", catalogName);
                 return true;
             }
             String ddl = resultSet.getString(2);
-            return !propertyEquals(ddl, "user", user)
-                    || !propertyEquals(ddl, "jdbc_uri", jdbcUri)
-                    || !propertyEquals(ddl, "driver_url", driverUrl)
-                    || !propertyEquals(ddl, "driver_class", driverClass);
+            log.info("catalog={} DDL={}", catalogName, ddl);
+            boolean userMatch = propertyEquals(ddl, "user", user);
+            boolean jdbcUriMatch = propertyEquals(ddl, "jdbc_uri", jdbcUri);
+            boolean driverUrlMatch = propertyEquals(ddl, "driver_url", driverUrl);
+            boolean driverClassMatch = propertyEquals(ddl, "driver_class", driverClass);
+            log.info("catalog={} 属性对比: user({}), jdbc_uri({}), driver_url({}), driver_class({})",
+                    catalogName, userMatch ? "match" : "MISMATCH",
+                    jdbcUriMatch ? "match" : "MISMATCH",
+                    driverUrlMatch ? "match" : "MISMATCH",
+                    driverClassMatch ? "match" : "MISMATCH");
+            return !userMatch || !jdbcUriMatch || !driverUrlMatch || !driverClassMatch;
         } catch (Exception e) {
             log.info("StarRocks catalog 不存在或无法读取,将重新创建, catalog={}, err={}", catalogName, e.getMessage());
             return true;
