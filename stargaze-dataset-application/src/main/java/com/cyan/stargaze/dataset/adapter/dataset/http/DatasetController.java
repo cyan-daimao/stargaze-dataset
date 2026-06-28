@@ -30,9 +30,11 @@ import com.cyan.stargaze.dataset.application.dataset.DatasetService;
 import com.cyan.stargaze.dataset.application.dataset.MaterializedViewService;
 import com.cyan.stargaze.dataset.application.dataset.bo.DatasetBO;
 import com.cyan.stargaze.dataset.application.dataset.bo.DatasetFileBO;
+import com.cyan.stargaze.dataset.application.dataset.bo.DatasetQueryRouteBO;
 import com.cyan.stargaze.dataset.application.dataset.bo.ExcelPreviewBO;
 import com.cyan.stargaze.dataset.application.dataset.bo.ExcelSheetBO;
 import com.cyan.stargaze.dataset.application.dataset.bo.SqlPreviewBO;
+import com.cyan.stargaze.dataset.client.dto.DatasetQueryRouteDTO;
 import com.cyan.stargaze.dataset.application.dataset.cmd.DatasetCreateCmd;
 import com.cyan.stargaze.dataset.application.dataset.cmd.DatasetHierarchyCmd;
 import com.cyan.stargaze.dataset.application.dataset.cmd.DatasetParameterCmd;
@@ -247,6 +249,26 @@ public class DatasetController {
     @GetMapping("/{id}/sync-status")
     public Response<DatasetSyncStatusDTO> syncStatus(@PathVariable("id") String id) {
         return Response.success(DatasetAdapterConvert.INSTANCE.toDatasetSyncStatusDTO(datasetService.syncStatus(id)));
+    }
+
+    // ==================== 13. 查询路由 ====================
+
+    @GetMapping("/{id}/query-route")
+    public Response<DatasetQueryRouteDTO> queryRoute(@PathVariable("id") String id) {
+        DatasetQueryRouteBO bo = datasetService.queryRoute(id);
+        return Response.success(new DatasetQueryRouteDTO()
+                .setDatasetId(bo.getDatasetId())
+                .setExecutionMode(bo.getExecutionMode())
+                .setEngine(bo.getEngine())
+                .setTableRef(bo.getTableRef())
+                .setCatalogName(bo.getCatalogName())
+                .setDatabaseName(bo.getDatabaseName())
+                .setSchemaName(bo.getSchemaName())
+                .setTableName(bo.getTableName())
+                .setSyncStatus(bo.getSyncStatus())
+                .setLastSyncAt(bo.getLastSyncAt())
+                .setLastError(bo.getLastError())
+                .setFieldMappings(bo.getFieldMappings()));
     }
 
     // ==================== 维度层级 ====================

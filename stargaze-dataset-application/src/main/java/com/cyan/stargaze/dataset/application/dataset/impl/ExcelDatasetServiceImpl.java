@@ -55,6 +55,12 @@ public class ExcelDatasetServiceImpl implements ExcelDatasetService {
     }
 
     @Override
+    public TableSampleValObj readAllRows(ExcelConfig config) {
+        TableSampleBO sample = datasetFileService.readAllRows(config.getFileId(), config.getSheetName(), 1);
+        return new TableSampleValObj().setColumns(sample.getColumns()).setRows(sample.getRows());
+    }
+
+    @Override
     public Long rowCount(ExcelConfig config) {
         try {
             TableSchemaBO schema = datasetFileService.schema(config.getFileId(), config.getSheetName(), 1);

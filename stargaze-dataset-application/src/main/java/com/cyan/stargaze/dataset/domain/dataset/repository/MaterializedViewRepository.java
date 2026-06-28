@@ -23,6 +23,11 @@ public interface MaterializedViewRepository {
     List<MaterializedView> listByDatasetId(String datasetId);
 
     /**
+     * 查询数据集启用的物化加速配置
+     */
+    MaterializedView findEnabledByDatasetId(String datasetId);
+
+    /**
      * 保存
      */
     MaterializedView save(MaterializedView view);

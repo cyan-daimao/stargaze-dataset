@@ -163,12 +163,16 @@ CREATE TABLE materialized_view (
     id               BIGINT       PRIMARY KEY,
     dataset_id       BIGINT       NOT NULL,
     name             VARCHAR(128) NOT NULL,            -- StarRocks 物化表名
+    enabled          BOOLEAN      NOT NULL DEFAULT TRUE,
     target_engine    VARCHAR(32)  NOT NULL DEFAULT 'starrocks',
+    target_database  VARCHAR(128),                     -- StarRocks 目标库
+    target_table     VARCHAR(128),                     -- StarRocks 目标表
     refresh_strategy VARCHAR(16)  NOT NULL,            -- 刷新策略:full/incremental
     refresh_cron     VARCHAR(64),                      -- 刷新 cron 表达式
     last_sync_at     TIMESTAMPTZ,                      -- 最近同步时间
-    status           VARCHAR(16)  NOT NULL DEFAULT 'IDLE', -- 同步状态:IDLE/SYNCING/ERROR
+    status           VARCHAR(16)  NOT NULL DEFAULT 'IDLE', -- 同步状态:IDLE/SYNCING/SUCCESS/ERROR
     config           TEXT,                             -- 配置(JSON 序列化字符串)
+    last_error       TEXT,                             -- 最近同步错误
     created_by       BIGINT,
     updated_by       BIGINT,
     created_at       TIMESTAMPTZ  NOT NULL DEFAULT now(),
@@ -176,10 +180,14 @@ CREATE TABLE materialized_view (
     deleted_at       TIMESTAMPTZ
 );
 COMMENT ON TABLE materialized_view IS '物化加速配置(物化表存 StarRocks)';
+COMMENT ON COLUMN materialized_view.enabled IS '是否启用';
 COMMENT ON COLUMN materialized_view.target_engine IS '目标引擎,默认 starrocks';
+COMMENT ON COLUMN materialized_view.target_database IS 'StarRocks 目标库';
+COMMENT ON COLUMN materialized_view.target_table IS 'StarRocks 目标表';
 COMMENT ON COLUMN materialized_view.refresh_strategy IS '刷新策略:full/incremental';
-COMMENT ON COLUMN materialized_view.status IS '同步状态:IDLE/SYNCING/ERROR';
+COMMENT ON COLUMN materialized_view.status IS '同步状态:IDLE/SYNCING/SUCCESS/ERROR';
 COMMENT ON COLUMN materialized_view.config IS '配置(JSON 序列化字符串:字段映射/分区/索引)';
+COMMENT ON COLUMN materialized_view.last_error IS '最近同步错误';
 
 CREATE INDEX idx_materialized_view_dataset ON materialized_view (dataset_id) WHERE deleted_at IS NULL;
 CREATE INDEX idx_materialized_view_status ON materialized_view (status) WHERE deleted_at IS NULL;

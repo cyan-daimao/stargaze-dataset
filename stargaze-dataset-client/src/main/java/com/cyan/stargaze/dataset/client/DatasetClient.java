@@ -4,6 +4,7 @@ import com.cyan.arch.common.api.Page;
 import com.cyan.arch.common.api.Response;
 import com.cyan.stargaze.dataset.client.dto.DatasetFieldDTO;
 import com.cyan.stargaze.dataset.client.dto.DatasetListItemDTO;
+import com.cyan.stargaze.dataset.client.dto.DatasetQueryRouteDTO;
 import com.cyan.stargaze.dataset.client.dto.ResolveFieldDTO;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -70,4 +71,13 @@ public interface DatasetClient {
      */
     @GetMapping("/{datasetId}/exists")
     Response<Boolean> exists(@PathVariable("datasetId") String datasetId);
+
+    /**
+     * 解析数据集查询路由(供 query 服务确定最终 StarRocks 表引用)
+     *
+     * @param datasetId 数据集 ID
+     * @return 查询路由
+     */
+    @GetMapping("/{datasetId}/query-route")
+    Response<DatasetQueryRouteDTO> queryRoute(@PathVariable("datasetId") String datasetId);
 }

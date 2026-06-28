@@ -30,8 +30,17 @@ public class MaterializedViewDTO {
     /** StarRocks 物化表名 */
     private String name;
 
+    /** 是否启用 */
+    private Boolean enabled;
+
     /** 目标引擎(默认 starrocks) */
     private String targetEngine;
+
+    /** 目标库名 */
+    private String targetDatabase;
+
+    /** 目标表名 */
+    private String targetTable;
 
     /** 刷新策略(full/incremental) */
     private RefreshStrategy refreshStrategy;
@@ -47,6 +56,9 @@ public class MaterializedViewDTO {
 
     /** 配置(字段映射/分区/索引,jsonb 序列化字符串) */
     private String config;
+
+    /** 最近同步错误 */
+    private String lastError;
 
     /** 创建人 */
     private String createdBy;

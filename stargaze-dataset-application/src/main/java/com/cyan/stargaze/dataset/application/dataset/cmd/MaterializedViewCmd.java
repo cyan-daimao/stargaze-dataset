@@ -31,8 +31,17 @@ public class MaterializedViewCmd {
     @NotBlank(message = "物化表名不能为空")
     private String name;
 
+    /** 是否启用 */
+    private Boolean enabled;
+
     /** 目标引擎(默认 starrocks) */
     private String targetEngine;
+
+    /** 目标库名 */
+    private String targetDatabase;
+
+    /** 目标表名 */
+    private String targetTable;
 
     /** 刷新策略 */
     @NotNull(message = "刷新策略不能为空")

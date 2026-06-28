@@ -31,6 +31,9 @@ starrocks:
   url: jdbc:mysql://10.0.0.2:32132/?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
   username: root
   password: 123456
+  database: stargaze_materialized
+  excel-table-prefix: excel_ds_
+  insert-batch-size: 1000
 
 # 数据源连接密码 AES-256-GCM 加密密钥(KMS 托管,私有化部署可环境变量覆盖)
 dataset:

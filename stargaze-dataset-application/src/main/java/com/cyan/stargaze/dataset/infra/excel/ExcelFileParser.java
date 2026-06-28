@@ -126,6 +126,38 @@ public class ExcelFileParser {
     }
 
     /**
+     * 读取 sheet 全量数据(受 dataset.excel.max-rows 限制)。
+     */
+    public TableSampleValObj readAllRows(File file, String sheetName, Integer headerRow) {
+        int headerIdx = headerRow == null || headerRow < 1 ? 0 : headerRow - 1;
+        try (Workbook workbook = WorkbookFactory.create(file)) {
+            Sheet sheet = workbook.getSheet(sheetName);
+            Assert.notNull(sheet, new SilentException("sheet 不存在: " + sheetName));
+            Row header = sheet.getRow(headerIdx);
+            Assert.notNull(header, new SilentException("表头行不存在"));
+            List<String> columns = normalizeHeaders(header);
+            List<Map<String, Object>> rows = new ArrayList<>();
+            for (int r = headerIdx + 1; r <= sheet.getLastRowNum() && rows.size() < properties.getMaxRows(); r++) {
+                Row row = sheet.getRow(r);
+                if (row == null) {
+                    continue;
+                }
+                Map<String, Object> rowMap = new LinkedHashMap<>();
+                for (int c = 0; c < columns.size(); c++) {
+                    rowMap.put(columns.get(c), readCell(row.getCell(c)));
+                }
+                rows.add(rowMap);
+            }
+            return new TableSampleValObj().setColumns(columns).setRows(rows);
+        } catch (Exception e) {
+            if (e instanceof SilentException se) {
+                throw se;
+            }
+            throw new SilentException("读取 Excel 数据失败: " + e.getMessage());
+        }
+    }
+
+    /**
      * 表头规范化:空 -> column_&lt;idx&gt;,重复 -> name_n
      */
     private List<String> normalizeHeaders(Row header) {

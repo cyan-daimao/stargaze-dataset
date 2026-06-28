@@ -6,9 +6,11 @@ import com.cyan.stargaze.dataset.adapter.dataset.http.convert.DatasetAdapterConv
 import com.cyan.stargaze.dataset.application.dataset.DatasetService;
 import com.cyan.stargaze.dataset.application.dataset.bo.DatasetFieldBO;
 import com.cyan.stargaze.dataset.application.dataset.bo.DatasetListBO;
+import com.cyan.stargaze.dataset.application.dataset.bo.DatasetQueryRouteBO;
 import com.cyan.stargaze.dataset.client.DatasetClient;
 import com.cyan.stargaze.dataset.client.dto.DatasetFieldDTO;
 import com.cyan.stargaze.dataset.client.dto.DatasetListItemDTO;
+import com.cyan.stargaze.dataset.client.dto.DatasetQueryRouteDTO;
 import com.cyan.stargaze.dataset.client.dto.ResolveFieldDTO;
 import com.cyan.stargaze.dataset.domain.dataset.query.DatasetListQuery;
 import com.cyan.stargaze.dataset.enums.DatasetSourceType;
@@ -75,6 +77,12 @@ public class DatasetRpcController implements DatasetClient {
         return Response.success(datasetService.exists(datasetId));
     }
 
+    @Override
+    public Response<DatasetQueryRouteDTO> queryRoute(@PathVariable("datasetId") String datasetId) {
+        DatasetQueryRouteBO route = datasetService.queryRoute(datasetId);
+        return Response.success(toQueryRouteDTO(route));
+    }
+
     private DatasetListItemDTO toClientListItem(DatasetListBO bo) {
         return new DatasetListItemDTO()
                 .setId(bo.getId())
@@ -94,6 +102,22 @@ public class DatasetRpcController implements DatasetClient {
                 .setCreator(bo.getCreator())
                 .setCreatedAt(bo.getCreatedAt())
                 .setUpdatedAt(bo.getUpdatedAt());
+    }
+
+    private DatasetQueryRouteDTO toQueryRouteDTO(DatasetQueryRouteBO bo) {
+        return new DatasetQueryRouteDTO()
+                .setDatasetId(bo.getDatasetId())
+                .setExecutionMode(bo.getExecutionMode())
+                .setEngine(bo.getEngine())
+                .setTableRef(bo.getTableRef())
+                .setCatalogName(bo.getCatalogName())
+                .setDatabaseName(bo.getDatabaseName())
+                .setSchemaName(bo.getSchemaName())
+                .setTableName(bo.getTableName())
+                .setSyncStatus(bo.getSyncStatus())
+                .setLastSyncAt(bo.getLastSyncAt())
+                .setLastError(bo.getLastError())
+                .setFieldMappings(bo.getFieldMappings());
     }
 
     private DatasetSourceType parseSourceType(String sourceType) {

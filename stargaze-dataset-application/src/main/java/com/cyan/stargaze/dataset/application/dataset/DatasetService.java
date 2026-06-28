@@ -4,6 +4,7 @@ import com.cyan.arch.common.api.Page;
 import com.cyan.stargaze.dataset.application.dataset.bo.DatasetBO;
 import com.cyan.stargaze.dataset.application.dataset.bo.DatasetFieldBO;
 import com.cyan.stargaze.dataset.application.dataset.bo.DatasetListBO;
+import com.cyan.stargaze.dataset.application.dataset.bo.DatasetQueryRouteBO;
 import com.cyan.stargaze.dataset.application.dataset.bo.DatasetSyncBO;
 import com.cyan.stargaze.dataset.application.dataset.bo.SqlPreviewBO;
 import com.cyan.stargaze.dataset.application.dataset.cmd.DatasetCreateCmd;
@@ -78,6 +79,11 @@ public interface DatasetService {
      * 数据集是否存在且可用
      */
     boolean exists(String datasetId);
+
+    /**
+     * 解析查询路由
+     */
+    DatasetQueryRouteBO queryRoute(String datasetId);
 
     /**
      * 元数据刷新(重新采集字段,内部供 sync 复用)

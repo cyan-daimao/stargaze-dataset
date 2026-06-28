@@ -103,6 +103,17 @@ public class DatasetFileServiceImpl implements DatasetFileService {
     }
 
     @Override
+    public TableSampleBO readAllRows(String fileId, String sheetName, Integer headerRow) {
+        DatasetFile file = loadFile(fileId);
+        File local = download(file);
+        try {
+            return convert.toTableSampleBO(excelFileParser.readAllRows(local, sheetName, headerRow));
+        } finally {
+            deleteQuietly(local);
+        }
+    }
+
+    @Override
     public ExcelPreviewBO preview(String fileId, String sheetName, Integer headerRow, int limit) {
         DatasetFile file = loadFile(fileId);
         File local = download(file);

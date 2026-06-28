@@ -39,9 +39,21 @@ public class MaterializedViewDO {
     @TableField("name")
     private String name;
 
+    /** 是否启用 */
+    @TableField("enabled")
+    private Boolean enabled;
+
     /** 目标引擎 */
     @TableField("target_engine")
     private String targetEngine;
+
+    /** 目标库名 */
+    @TableField("target_database")
+    private String targetDatabase;
+
+    /** 目标表名 */
+    @TableField("target_table")
+    private String targetTable;
 
     /** 刷新策略(full/incremental) */
     @TableField("refresh_strategy")
@@ -62,6 +74,10 @@ public class MaterializedViewDO {
     /** 配置(jsonb) */
     @TableField("config")
     private String config;
+
+    /** 最近同步错误 */
+    @TableField("last_error")
+    private String lastError;
 
     /** 创建人 */
     @TableField("created_by")

@@ -25,6 +25,11 @@ public interface ExcelDatasetService {
     TableSampleValObj preview(ExcelConfig config, int limit);
 
     /**
+     * 读取全量 Excel 数据(受 Excel 配置上限限制)
+     */
+    TableSampleValObj readAllRows(ExcelConfig config);
+
+    /**
      * Excel 行数(statistics 用)
      */
     Long rowCount(ExcelConfig config);

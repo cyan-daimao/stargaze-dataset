@@ -44,6 +44,17 @@ public class MaterializedViewRepositoryImpl implements MaterializedViewRepositor
     }
 
     @Override
+    public MaterializedView findEnabledByDatasetId(String datasetId) {
+        LambdaQueryWrapper<MaterializedViewDO> wrapper = new LambdaQueryWrapper<MaterializedViewDO>()
+                .eq(MaterializedViewDO::getDatasetId, IdUtil.toLong(datasetId))
+                .eq(MaterializedViewDO::getEnabled, true)
+                .orderByDesc(MaterializedViewDO::getUpdatedAt)
+                .last("limit 1");
+        MaterializedViewDO viewDO = mapper.selectOne(wrapper);
+        return viewDO == null ? null : convert.toMaterializedView(viewDO);
+    }
+
+    @Override
     public MaterializedView save(MaterializedView view) {
         MaterializedViewDO viewDO = convert.toMaterializedViewDO(view);
         mapper.insert(viewDO);

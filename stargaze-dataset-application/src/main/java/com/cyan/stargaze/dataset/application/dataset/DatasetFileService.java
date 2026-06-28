@@ -38,6 +38,11 @@ public interface DatasetFileService {
     TableSampleBO sample(String fileId, String sheetName, Integer headerRow, int limit);
 
     /**
+     * 读取 sheet 全量数据(受 Excel 配置上限限制)
+     */
+    TableSampleBO readAllRows(String fileId, String sheetName, Integer headerRow);
+
+    /**
      * 预览(列带序号/推断类型 + 行数组)
      */
     ExcelPreviewBO preview(String fileId, String sheetName, Integer headerRow, int limit);

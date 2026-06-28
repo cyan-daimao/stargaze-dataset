@@ -25,9 +25,9 @@ import java.time.OffsetDateTime;
 @Accessors(chain = true)
 public class MaterializedView {
 
-    /** 物化状态:idle/syncing/error */
+    /** 物化状态:idle/syncing/success/error */
     public enum SyncStatus {
-        IDLE, SYNCING, ERROR
+        IDLE, SYNCING, SUCCESS, ERROR
     }
 
     /** 主键 */
@@ -39,8 +39,17 @@ public class MaterializedView {
     /** StarRocks 物化表名 */
     private String name;
 
+    /** 是否启用 */
+    private Boolean enabled;
+
     /** 目标引擎(默认 starrocks) */
     private String targetEngine;
+
+    /** 目标库名 */
+    private String targetDatabase;
+
+    /** 目标表名 */
+    private String targetTable;
 
     /** 刷新策略(full/incremental) */
     private RefreshStrategy refreshStrategy;
@@ -56,6 +65,9 @@ public class MaterializedView {
 
     /** 配置(字段映射/分区/索引,jsonb 序列化字符串) */
     private String config;
+
+    /** 最近同步错误 */
+    private String lastError;
 
     /** 创建人 */
     private String createdBy;
@@ -86,7 +98,9 @@ public class MaterializedView {
      */
     public MaterializedView save(MaterializedViewRepository repository) {
         validate();
+        this.enabled = this.enabled == null || this.enabled;
         this.targetEngine = this.targetEngine == null ? "starrocks" : this.targetEngine;
+        this.targetTable = this.targetTable == null ? this.name : this.targetTable;
         this.status = this.status == null ? SyncStatus.IDLE : this.status;
         this.createdAt = OffsetDateTime.now();
         this.updatedAt = OffsetDateTime.now();
@@ -115,16 +129,18 @@ public class MaterializedView {
      * 标记同步完成
      */
     public void markSynced() {
-        this.status = SyncStatus.IDLE;
+        this.status = SyncStatus.SUCCESS;
         this.lastSyncAt = OffsetDateTime.now();
+        this.lastError = null;
         this.updatedAt = OffsetDateTime.now();
     }
 
     /**
      * 标记同步失败
      */
-    public void markError() {
+    public void markError(String error) {
         this.status = SyncStatus.ERROR;
+        this.lastError = error;
         this.updatedAt = OffsetDateTime.now();
     }
 

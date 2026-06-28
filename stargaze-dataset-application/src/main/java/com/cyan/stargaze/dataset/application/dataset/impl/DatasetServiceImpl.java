@@ -10,6 +10,7 @@ import com.cyan.stargaze.dataset.application.dataset.JoinDatasetService;
 import com.cyan.stargaze.dataset.application.dataset.bo.DatasetBO;
 import com.cyan.stargaze.dataset.application.dataset.bo.DatasetFieldBO;
 import com.cyan.stargaze.dataset.application.dataset.bo.DatasetListBO;
+import com.cyan.stargaze.dataset.application.dataset.bo.DatasetQueryRouteBO;
 import com.cyan.stargaze.dataset.application.dataset.bo.DatasetStatisticsBO;
 import com.cyan.stargaze.dataset.application.dataset.bo.DatasetSyncBO;
 import com.cyan.stargaze.dataset.application.dataset.bo.SqlPreviewBO;
@@ -29,6 +30,7 @@ import com.cyan.stargaze.dataset.domain.datasource.valobj.TableSampleValObj;
 import com.cyan.stargaze.dataset.domain.datasource.valobj.TableSchemaValObj;
 import com.cyan.stargaze.dataset.domain.dataset.Dataset;
 import com.cyan.stargaze.dataset.domain.dataset.DatasetField;
+import com.cyan.stargaze.dataset.domain.dataset.MaterializedView;
 import com.cyan.stargaze.dataset.domain.dataset.config.DatasetConfig;
 import com.cyan.stargaze.dataset.domain.dataset.config.DatasetConfigs;
 import com.cyan.stargaze.dataset.domain.dataset.config.ExcelConfig;
@@ -38,14 +40,18 @@ import com.cyan.stargaze.dataset.domain.dataset.config.TableConfig;
 import com.cyan.stargaze.dataset.domain.dataset.query.DatasetListQuery;
 import com.cyan.stargaze.dataset.domain.dataset.repository.DatasetFieldRepository;
 import com.cyan.stargaze.dataset.domain.dataset.repository.DatasetRepository;
+import com.cyan.stargaze.dataset.domain.dataset.repository.MaterializedViewRepository;
 import com.cyan.stargaze.dataset.enums.DataType;
 import com.cyan.stargaze.dataset.enums.DatasetSourceType;
 import com.cyan.stargaze.dataset.enums.DatasetSyncStatus;
 import com.cyan.stargaze.dataset.enums.FieldType;
+import com.cyan.stargaze.dataset.enums.RefreshStrategy;
 import com.cyan.stargaze.dataset.infra.connector.DataSourceConnector;
 import com.cyan.stargaze.dataset.infra.connector.DataSourceConnectorFactory;
 import com.cyan.stargaze.dataset.infra.connector.join.CompiledJoin;
 import com.cyan.stargaze.dataset.infra.connector.join.JoinSqlCompiler;
+import com.cyan.stargaze.dataset.infra.config.DatasetStarRocksProperties;
+import com.cyan.stargaze.dataset.infra.starrocks.StarRocksTableManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -72,6 +78,7 @@ public class DatasetServiceImpl implements DatasetService {
 
     private final DatasetRepository datasetRepository;
     private final DatasetFieldRepository datasetFieldRepository;
+    private final MaterializedViewRepository materializedViewRepository;
     private final DataSourceRepository dataSourceRepository;
     private final DataSourceConnectorFactory connectorFactory;
     private final DatasetAppConvert convert;
@@ -80,6 +87,8 @@ public class DatasetServiceImpl implements DatasetService {
     private final JoinDatasetService joinDatasetService;
     private final ExcelDatasetService excelDatasetService;
     private final JoinSqlCompiler joinSqlCompiler;
+    private final StarRocksTableManager starRocksTableManager;
+    private final DatasetStarRocksProperties starRocksProperties;
     private final ApplicationEventPublisher eventPublisher;
     private final DatasetBOAssembler assembler;
 
@@ -104,6 +113,9 @@ public class DatasetServiceImpl implements DatasetService {
             dataset.setFields(convert.toDatasetFieldList(cmd.getFields()));
         }
         dataset = dataset.save(datasetRepository);
+        if (DatasetSourceType.EXCEL == dataset.getSourceType()) {
+            syncExcelToStarRocks(dataset, (ExcelConfig) config);
+        }
         return toDetailBO(dataset);
     }
 
@@ -152,15 +164,33 @@ public class DatasetServiceImpl implements DatasetService {
     @Override
     @Transactional
     public DatasetSyncBO sync(String id, DatasetSyncCmd cmd) {
-        // 一期占位:复用元数据刷新,返回 RUNNING(实际已同步完成)
         Dataset dataset = datasetRepository.findById(id);
         Assert.notNull(dataset, new SilentException("数据集不存在"));
+        OffsetDateTime now = OffsetDateTime.now();
+        if (DatasetSourceType.EXCEL == dataset.getSourceType()) {
+            refresh(id);
+            dataset = datasetRepository.findById(id);
+            ExcelConfig excelConfig = (ExcelConfig) DatasetConfigs.parse(dataset.getSourceType(), dataset.getDefinition());
+            MaterializedView view = syncExcelToStarRocks(dataset, excelConfig);
+            Long totalRows = excelDatasetService.rowCount(excelConfig);
+            DatasetSyncStatus status = MaterializedView.SyncStatus.ERROR == view.getStatus()
+                    ? DatasetSyncStatus.FAILED : DatasetSyncStatus.SUCCESS;
+            return new DatasetSyncBO()
+                    .setSyncId(id + "_" + now.toEpochSecond())
+                    .setDatasetId(id)
+                    .setStatus(status)
+                    .setStartedAt(now)
+                    .setCompletedAt(OffsetDateTime.now())
+                    .setTotalRows(totalRows)
+                    .setSyncedRows(MaterializedView.SyncStatus.ERROR == view.getStatus() ? 0L : totalRows)
+                    .setErrorMessage(view.getLastError());
+        }
+        // 普通数据集:当前仅刷新元数据,物化同步由后续调度/手动任务扩展。
         try {
             refresh(id);
         } catch (Exception e) {
             log.warn("数据集同步刷新失败, datasetId={}, err={}", id, e.getMessage());
         }
-        OffsetDateTime now = OffsetDateTime.now();
         return new DatasetSyncBO()
                 .setSyncId(id + "_" + now.toEpochSecond())
                 .setDatasetId(id)
@@ -204,6 +234,28 @@ public class DatasetServiceImpl implements DatasetService {
     @Override
     public boolean exists(String datasetId) {
         return datasetRepository.existsById(datasetId);
+    }
+
+    @Override
+    public DatasetQueryRouteBO queryRoute(String datasetId) {
+        Dataset dataset = datasetRepository.findById(datasetId);
+        if (dataset == null) {
+            dataset = datasetRepository.findByName(datasetId);
+        }
+        Assert.notNull(dataset, new SilentException("数据集不存在"));
+        DatasetConfig config = DatasetConfigs.parse(dataset.getSourceType(), dataset.getDefinition());
+        MaterializedView view = materializedViewRepository.findEnabledByDatasetId(dataset.getId());
+        if (DatasetSourceType.EXCEL == dataset.getSourceType()) {
+            Assert.notNull(view, new SilentException("Excel 数据集尚未创建 StarRocks 表"));
+            return routeFromView(dataset, view, "EXCEL_TABLE");
+        }
+        if (view != null && MaterializedView.SyncStatus.SUCCESS == view.getStatus()) {
+            return routeFromView(dataset, view, "MATERIALIZED");
+        }
+        if (DatasetSourceType.TABLE == dataset.getSourceType()) {
+            return catalogRoute(dataset, (TableConfig) config);
+        }
+        throw new SilentException("该数据集未物化,暂不支持通过 Catalog 查询来源类型: " + dataset.getSourceType());
     }
 
     @Override
@@ -265,6 +317,99 @@ public class DatasetServiceImpl implements DatasetService {
             default:
                 throw new SilentException("暂不支持的数据集来源类型: " + cmd.getSourceType());
         }
+    }
+
+    private MaterializedView syncExcelToStarRocks(Dataset dataset, ExcelConfig config) {
+        String tableName = starRocksProperties.getExcelTablePrefix() + dataset.getId();
+        String database = starRocksProperties.getDatabase();
+        MaterializedView view = materializedViewRepository.findEnabledByDatasetId(dataset.getId());
+        if (view == null) {
+            view = new MaterializedView()
+                    .setDatasetId(dataset.getId())
+                    .setName(tableName)
+                    .setEnabled(true)
+                    .setTargetEngine("starrocks")
+                    .setTargetDatabase(database)
+                    .setTargetTable(tableName)
+                    .setRefreshStrategy(RefreshStrategy.FULL)
+                    .setStatus(MaterializedView.SyncStatus.SYNCING)
+                    .setCreatedBy(dataset.getCreatedBy())
+                    .setUpdatedBy(dataset.getUpdatedBy());
+            view = view.save(materializedViewRepository);
+        } else {
+            view.setName(tableName)
+                    .setEnabled(true)
+                    .setTargetEngine("starrocks")
+                    .setTargetDatabase(database)
+                    .setTargetTable(tableName)
+                    .setRefreshStrategy(view.getRefreshStrategy() == null ? RefreshStrategy.FULL : view.getRefreshStrategy())
+                    .setUpdatedBy(dataset.getUpdatedBy());
+            view.markSyncing();
+            view = materializedViewRepository.update(view);
+        }
+        try {
+            List<DatasetField> fields = datasetFieldRepository.listByDatasetId(dataset.getId());
+            TableSampleValObj rows = excelDatasetService.readAllRows(config);
+            starRocksTableManager.recreateTable(database, tableName, fields);
+            long inserted = starRocksTableManager.insertRows(database, tableName, fields, rows.getRows());
+            view.markSynced();
+            view.setConfig("{\"syncedRows\":" + inserted + "}");
+            return materializedViewRepository.update(view);
+        } catch (Exception e) {
+            String message = e.getMessage() == null ? e.getClass().getSimpleName() : e.getMessage();
+            view.markError(message);
+            log.warn("Excel 数据集导入 StarRocks 失败, datasetId={}, err={}", dataset.getId(), message);
+            return materializedViewRepository.update(view);
+        }
+    }
+
+    private DatasetQueryRouteBO routeFromView(Dataset dataset, MaterializedView view, String executionMode) {
+        String database = firstNotBlank(view.getTargetDatabase(), starRocksProperties.getDatabase());
+        String table = firstNotBlank(view.getTargetTable(), view.getName());
+        return new DatasetQueryRouteBO()
+                .setDatasetId(dataset.getId())
+                .setExecutionMode(executionMode)
+                .setEngine("starrocks")
+                .setDatabaseName(database)
+                .setTableName(table)
+                .setTableRef(database + "." + table)
+                .setSyncStatus(view.getStatus() == null ? null : view.getStatus().name())
+                .setLastSyncAt(view.getLastSyncAt())
+                .setLastError(view.getLastError())
+                .setFieldMappings(fieldMappings(dataset.getId()));
+    }
+
+    private DatasetQueryRouteBO catalogRoute(Dataset dataset, TableConfig config) {
+        DataSource dataSource = loadDataSource(dataset);
+        String catalogName = "ds_" + dataset.getDataSourceId();
+        starRocksTableManager.ensureExternalCatalog(catalogName, dataSource);
+        String database = firstNotBlank(config.getSchema(), dataSource.getConfig() == null ? null : dataSource.getConfig().getDatabase());
+        Assert.notBlank(database, new SilentException("Catalog 查询缺少源端 database/schema"));
+        String table = config.getTableName();
+        return new DatasetQueryRouteBO()
+                .setDatasetId(dataset.getId())
+                .setExecutionMode("CATALOG")
+                .setEngine("starrocks")
+                .setCatalogName(catalogName)
+                .setDatabaseName(database)
+                .setSchemaName(config.getSchema())
+                .setTableName(table)
+                .setTableRef(catalogName + "." + database + "." + table)
+                .setSyncStatus("IDLE")
+                .setFieldMappings(fieldMappings(dataset.getId()));
+    }
+
+    private Map<String, String> fieldMappings(String datasetId) {
+        return datasetFieldRepository.listByDatasetId(datasetId).stream()
+                .collect(Collectors.toMap(DatasetField::getOriginName, DatasetField::getOriginName, (a, b) -> a));
+    }
+
+    private String firstNotBlank(String first, String second) {
+        return first == null || first.isBlank() ? second : first;
+    }
+
+    private String nullToEmpty(String value) {
+        return value == null ? "" : value;
     }
 
     private void validateSource(DatasetSourceType sourceType, String datasourceId, DatasetConfig config) {
