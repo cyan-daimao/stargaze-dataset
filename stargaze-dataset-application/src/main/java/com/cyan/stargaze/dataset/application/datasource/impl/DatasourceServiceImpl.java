@@ -153,6 +153,6 @@ public class DatasourceServiceImpl implements DatasourceService {
 
     private void ensureCatalog(DataSource dataSource) {
         String catalogName = "ds_" + dataSource.getId();
-        starRocksTableManager.ensureExternalCatalog(catalogName, dataSource);
+        starRocksTableManager.recreateExternalCatalog(catalogName, dataSource);
     }
 }

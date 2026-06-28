@@ -14,6 +14,7 @@ import org.springframework.stereotype.Component;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.time.LocalDate;
@@ -22,6 +23,8 @@ import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * StarRocks 表与 catalog 管理组件。
@@ -34,11 +37,11 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class StarRocksTableManager {
 
-    private static final String MYSQL_DRIVER_URL = "file:///opt/starrocks/fe/lib/mariadb-java-client-3.3.2.jar";
+    private static final String MYSQL_DRIVER_URL = "file:///opt/starrocks/jdbc-drivers/mariadb-java-client-3.3.2.jar";
     private static final String MYSQL_DRIVER_CLASS = "org.mariadb.jdbc.Driver";
-    private static final String POSTGRESQL_DRIVER_URL = "file:///opt/starrocks/fe/lib/postgresql-42.4.4.jar";
+    private static final String POSTGRESQL_DRIVER_URL = "file:///opt/starrocks/jdbc-drivers/postgresql-42.4.4.jar";
     private static final String POSTGRESQL_DRIVER_CLASS = "org.postgresql.Driver";
-    private static final String CLICKHOUSE_DRIVER_URL = "file:///opt/starrocks/fe/lib/clickhouse-jdbc-0.4.6.jar";
+    private static final String CLICKHOUSE_DRIVER_URL = "file:///opt/starrocks/jdbc-drivers/clickhouse-jdbc-0.4.6.jar";
     private static final String CLICKHOUSE_DRIVER_CLASS = "com.clickhouse.jdbc.ClickHouseDriver";
 
     private final DatasetStarRocksProperties properties;
@@ -101,6 +104,17 @@ public class StarRocksTableManager {
      * 确保 external catalog 存在。
      */
     public void ensureExternalCatalog(String catalogName, DataSource dataSource) {
+        ensureExternalCatalog(catalogName, dataSource, false);
+    }
+
+    /**
+     * 重建 external catalog。
+     */
+    public void recreateExternalCatalog(String catalogName, DataSource dataSource) {
+        ensureExternalCatalog(catalogName, dataSource, true);
+    }
+
+    private void ensureExternalCatalog(String catalogName, DataSource dataSource, boolean forceRecreate) {
         DataSourceConfig config = dataSource.getConfig();
         String jdbcUri = jdbcUri(dataSource.getType(), config);
         String driverUrl = driverUrl(dataSource.getType());
@@ -117,6 +131,9 @@ public class StarRocksTableManager {
                 + prop("driver_url", driverUrl) + ", "
                 + prop("driver_class", driverClass)
                 + ")";
+        if (forceRecreate || catalogNeedsRebuild(catalogName, config.getUsername(), jdbcUri, driverUrl, driverClass)) {
+            execute("DROP CATALOG IF EXISTS " + quote(catalogName));
+        }
         execute(sql);
     }
 
@@ -209,6 +226,33 @@ public class StarRocksTableManager {
 
     private String firstNotBlank(String first, String second) {
         return first == null || first.isBlank() ? second : first;
+    }
+
+    private boolean catalogNeedsRebuild(String catalogName, String user, String jdbcUri, String driverUrl, String driverClass) {
+        String sql = "SHOW CREATE CATALOG " + quote(catalogName);
+        try (Connection connection = connection();
+             Statement statement = connection.createStatement();
+             ResultSet resultSet = statement.executeQuery(sql)) {
+            if (!resultSet.next()) {
+                return true;
+            }
+            String ddl = resultSet.getString(2);
+            return !propertyEquals(ddl, "user", user)
+                    || !propertyEquals(ddl, "jdbc_uri", jdbcUri)
+                    || !propertyEquals(ddl, "driver_url", driverUrl)
+                    || !propertyEquals(ddl, "driver_class", driverClass);
+        } catch (Exception e) {
+            log.info("StarRocks catalog 不存在或无法读取,将重新创建, catalog={}, err={}", catalogName, e.getMessage());
+            return true;
+        }
+    }
+
+    private boolean propertyEquals(String ddl, String key, String expected) {
+        if (expected == null) {
+            expected = "";
+        }
+        Matcher matcher = Pattern.compile("\"" + Pattern.quote(key) + "\"\\s*=\\s*\"([^\"]*)\"").matcher(ddl);
+        return matcher.find() && expected.equals(matcher.group(1));
     }
 
     private void execute(String sql) {
