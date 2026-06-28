@@ -34,6 +34,13 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class StarRocksTableManager {
 
+    private static final String MYSQL_DRIVER_URL = "file:///opt/starrocks/fe/lib/mariadb-java-client-3.3.2.jar";
+    private static final String MYSQL_DRIVER_CLASS = "org.mariadb.jdbc.Driver";
+    private static final String POSTGRESQL_DRIVER_URL = "file:///opt/starrocks/fe/lib/postgresql-42.4.4.jar";
+    private static final String POSTGRESQL_DRIVER_CLASS = "org.postgresql.Driver";
+    private static final String CLICKHOUSE_DRIVER_URL = "file:///opt/starrocks/fe/lib/clickhouse-jdbc-0.4.6.jar";
+    private static final String CLICKHOUSE_DRIVER_CLASS = "com.clickhouse.jdbc.ClickHouseDriver";
+
     private final DatasetStarRocksProperties properties;
 
     /**
@@ -94,22 +101,20 @@ public class StarRocksTableManager {
      * 确保 external catalog 存在。
      */
     public void ensureExternalCatalog(String catalogName, DataSource dataSource) {
-        if (properties.getJdbcDriverUrl() == null || properties.getJdbcDriverUrl().isBlank()) {
-            throw new SilentException("StarRocks external catalog 创建失败:缺少 starrocks.jdbc-driver-url");
-        }
         DataSourceConfig config = dataSource.getConfig();
         String jdbcUri = jdbcUri(dataSource.getType(), config);
-        String driverClass = properties.getJdbcDriverClass();
-        if (driverClass == null || driverClass.isBlank()) {
-            driverClass = defaultDriverClass(dataSource.getType());
+        String driverUrl = driverUrl(dataSource.getType());
+        if (driverUrl == null || driverUrl.isBlank()) {
+            throw new SilentException("StarRocks external catalog 创建失败:缺少 " + driverUrlConfigKey(dataSource.getType()));
         }
+        String driverClass = driverClass(dataSource.getType());
         String sql = "CREATE EXTERNAL CATALOG IF NOT EXISTS " + quote(catalogName)
                 + " PROPERTIES ("
                 + prop("type", "jdbc") + ", "
                 + prop("user", config.getUsername()) + ", "
                 + prop("password", config.getPassword()) + ", "
                 + prop("jdbc_uri", jdbcUri) + ", "
-                + prop("driver_url", properties.getJdbcDriverUrl()) + ", "
+                + prop("driver_url", driverUrl) + ", "
                 + prop("driver_class", driverClass)
                 + ")";
         execute(sql);
@@ -173,12 +178,37 @@ public class StarRocksTableManager {
         };
     }
 
-    private String defaultDriverClass(DatasourceType type) {
+    private String driverUrl(DatasourceType type) {
+        String global = properties.getJdbcDriverUrl();
         return switch (type) {
-            case POSTGRESQL -> "org.postgresql.Driver";
-            case CLICKHOUSE -> "com.clickhouse.jdbc.ClickHouseDriver";
-            default -> "com.mysql.cj.jdbc.Driver";
+            case POSTGRESQL -> firstNotBlank(properties.getPostgresqlJdbcDriverUrl(), firstNotBlank(global, POSTGRESQL_DRIVER_URL));
+            case CLICKHOUSE -> firstNotBlank(properties.getClickhouseJdbcDriverUrl(), firstNotBlank(global, CLICKHOUSE_DRIVER_URL));
+            case MYSQL, STARROCKS, DORIS -> firstNotBlank(properties.getMysqlJdbcDriverUrl(), firstNotBlank(global, MYSQL_DRIVER_URL));
+            default -> global;
         };
+    }
+
+    private String driverClass(DatasourceType type) {
+        String global = properties.getJdbcDriverClass();
+        return switch (type) {
+            case POSTGRESQL -> firstNotBlank(properties.getPostgresqlJdbcDriverClass(), firstNotBlank(global, POSTGRESQL_DRIVER_CLASS));
+            case CLICKHOUSE -> firstNotBlank(properties.getClickhouseJdbcDriverClass(), firstNotBlank(global, CLICKHOUSE_DRIVER_CLASS));
+            case MYSQL, STARROCKS, DORIS -> firstNotBlank(properties.getMysqlJdbcDriverClass(), firstNotBlank(global, MYSQL_DRIVER_CLASS));
+            default -> firstNotBlank(global, MYSQL_DRIVER_CLASS);
+        };
+    }
+
+    private String driverUrlConfigKey(DatasourceType type) {
+        return switch (type) {
+            case POSTGRESQL -> "starrocks.postgresql-jdbc-driver-url";
+            case CLICKHOUSE -> "starrocks.clickhouse-jdbc-driver-url";
+            case MYSQL, STARROCKS, DORIS -> "starrocks.mysql-jdbc-driver-url";
+            default -> "starrocks.jdbc-driver-url";
+        };
+    }
+
+    private String firstNotBlank(String first, String second) {
+        return first == null || first.isBlank() ? second : first;
     }
 
     private void execute(String sql) {

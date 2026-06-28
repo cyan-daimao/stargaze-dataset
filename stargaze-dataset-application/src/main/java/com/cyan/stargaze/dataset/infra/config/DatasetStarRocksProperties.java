@@ -42,6 +42,24 @@ public class DatasetStarRocksProperties {
     /** StarRocks JDBC catalog 驱动类名 */
     private String jdbcDriverClass;
 
+    /** MySQL/StarRocks/Doris catalog 驱动包地址 */
+    private String mysqlJdbcDriverUrl;
+
+    /** MySQL/StarRocks/Doris catalog 驱动类名 */
+    private String mysqlJdbcDriverClass;
+
+    /** PostgreSQL catalog 驱动包地址 */
+    private String postgresqlJdbcDriverUrl;
+
+    /** PostgreSQL catalog 驱动类名 */
+    private String postgresqlJdbcDriverClass;
+
+    /** ClickHouse catalog 驱动包地址 */
+    private String clickhouseJdbcDriverUrl;
+
+    /** ClickHouse catalog 驱动类名 */
+    private String clickhouseJdbcDriverClass;
+
     public String getUrl() {
         return url == null || url.isBlank() ? jdbcUrl : url;
     }
