@@ -116,14 +116,23 @@ public class StarRocksTableManager {
 
     private void ensureExternalCatalog(String catalogName, DataSource dataSource, boolean forceRecreate) {
         DataSourceConfig config = dataSource.getConfig();
+        String rawJdbcUrl = config.getJdbcUrl();
         String jdbcUri = jdbcUri(dataSource.getType(), config);
         String driverUrl = driverUrl(dataSource.getType());
         if (driverUrl == null || driverUrl.isBlank()) {
             throw new SilentException("StarRocks external catalog 创建失败:缺少 " + driverUrlConfigKey(dataSource.getType()));
         }
         String driverClass = driverClass(dataSource.getType());
-        log.info("创建/校验 StarRocks external catalog={}, jdbcUri={}, driverUrl={}, driverClass={}",
-                catalogName, jdbcUri, driverUrl, driverClass);
+        // 当 JDBC URL 被标准化后与原值不同时，必须强制重建 catalog，
+        // 否则 StarRocks BE 会继续使用 catalog 中已缓存的旧 URL
+        boolean urlNormalized = rawJdbcUrl != null && !rawJdbcUrl.isBlank()
+                && !rawJdbcUrl.trim().equals(jdbcUri);
+        if (urlNormalized) {
+            log.info("JDBC URL 标准化变更，强制重建 catalog={}, 原值={}, 新值={}", catalogName, rawJdbcUrl, jdbcUri);
+            forceRecreate = true;
+        }
+        log.info("创建/校验 StarRocks external catalog={}, jdbcUri={}, driverUrl={}, driverClass={}, forceRecreate={}",
+                catalogName, jdbcUri, driverUrl, driverClass, forceRecreate);
         String sql = "CREATE EXTERNAL CATALOG IF NOT EXISTS " + quote(catalogName)
                 + " PROPERTIES ("
                 + prop("type", "jdbc") + ", "
