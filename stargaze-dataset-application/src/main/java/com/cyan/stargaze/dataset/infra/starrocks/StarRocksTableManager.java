@@ -204,11 +204,11 @@ public class StarRocksTableManager {
      */
     private String jdbcUri(DatasourceType type, DataSourceConfig config) {
         if (config.getJdbcUrl() != null && !config.getJdbcUrl().isBlank()) {
-            return stripDatabasePath(normalizeJdbcUrl(config.getJdbcUrl()));
+            return toMariadbPrefix(stripDatabasePath(normalizeJdbcUrl(config.getJdbcUrl())));
         }
         return switch (type) {
             case POSTGRESQL -> "jdbc:postgresql://" + config.getHost() + ":" + config.getPort();
-            case MYSQL, STARROCKS, DORIS -> "jdbc:mysql://" + config.getHost() + ":" + config.getPort();
+            case MYSQL, STARROCKS, DORIS -> "jdbc:mariadb://" + config.getHost() + ":" + config.getPort();
             case CLICKHOUSE -> "jdbc:clickhouse://" + config.getHost() + ":" + config.getPort();
             default -> throw new SilentException("暂不支持创建该数据源 catalog: " + type);
         };
@@ -253,6 +253,22 @@ public class StarRocksTableManager {
         // jdbc:mysql://10.0.0.2:3306/cyan_dataman?useSSL=false
         // → jdbc:mysql://10.0.0.2:3306?useSSL=false
         return jdbcUrl.trim().replaceAll("^(jdbc:[a-z]+://[^/]+)/[^/?]*(\\?.*)?$", "$1$2");
+    }
+
+    /**
+     * 将 {@code jdbc:mysql://} 前缀替换为 {@code jdbc:mariadb://}。
+     * <p>
+     * MariaDB Connector/J 3.x 默认只接受 jdbc:mariadb: 前缀，
+     * 而 MySQL Connector/J 的 jdbc:mysql: 前缀会被其 {@code acceptsURL} 拒绝。
+     * 由于 StarRocks External Catalog 使用 MariaDB 驱动连接 MySQL/StarRocks/Doris，
+     * 必须转换前缀以通过驱动校验。
+     * </p>
+     */
+    private String toMariadbPrefix(String jdbcUrl) {
+        if (jdbcUrl == null || jdbcUrl.isBlank()) {
+            return jdbcUrl;
+        }
+        return jdbcUrl.trim().replaceFirst("^jdbc:mysql://", "jdbc:mariadb://");
     }
 
     private String driverUrl(DatasourceType type) {
