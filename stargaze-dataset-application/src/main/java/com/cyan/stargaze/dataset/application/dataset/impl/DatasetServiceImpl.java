@@ -255,6 +255,9 @@ public class DatasetServiceImpl implements DatasetService {
         if (DatasetSourceType.TABLE == dataset.getSourceType()) {
             return catalogRoute(dataset, (TableConfig) config);
         }
+        if (DatasetSourceType.SQL == dataset.getSourceType()) {
+            return catalogSqlRoute(dataset, (SqlConfig) config);
+        }
         throw new SilentException("该数据集未物化,暂不支持通过 Catalog 查询来源类型: " + dataset.getSourceType());
     }
 
@@ -399,6 +402,28 @@ public class DatasetServiceImpl implements DatasetService {
                 .setFieldMappings(fieldMappings(dataset.getId()));
     }
 
+    private DatasetQueryRouteBO catalogSqlRoute(Dataset dataset, SqlConfig config) {
+        DataSource dataSource = loadDataSource(dataset);
+        String catalogName = "ds_" + dataset.getDataSourceId();
+        starRocksTableManager.ensureExternalCatalog(catalogName, dataSource);
+        String database = firstNotBlank(config.getSchema(), dataSource.getConfig() == null ? null : dataSource.getConfig().getDatabase());
+        Assert.notBlank(database, new SilentException("SQL 数据集 Catalog 查询缺少源端 database/schema"));
+        String sql = stripTrailingSemicolon(config.getSql());
+        Assert.notBlank(sql, new SilentException("SQL 数据集查询 SQL 不能为空"));
+        String alias = "__sg_ds_" + dataset.getId();
+        return new DatasetQueryRouteBO()
+                .setDatasetId(dataset.getId())
+                .setExecutionMode("CATALOG")
+                .setEngine("starrocks")
+                .setCatalogName(catalogName)
+                .setDatabaseName(database)
+                .setSchemaName(config.getSchema())
+                .setTableName(alias)
+                .setTableRef("(" + sql + ") " + alias)
+                .setSyncStatus("IDLE")
+                .setFieldMappings(fieldMappings(dataset.getId()));
+    }
+
     private Map<String, String> fieldMappings(String datasetId) {
         return datasetFieldRepository.listByDatasetId(datasetId).stream()
                 .collect(Collectors.toMap(DatasetField::getOriginName, DatasetField::getOriginName, (a, b) -> a));
@@ -406,6 +431,17 @@ public class DatasetServiceImpl implements DatasetService {
 
     private String firstNotBlank(String first, String second) {
         return first == null || first.isBlank() ? second : first;
+    }
+
+    private String stripTrailingSemicolon(String sql) {
+        if (sql == null) {
+            return null;
+        }
+        String trimmed = sql.trim();
+        while (trimmed.endsWith(";")) {
+            trimmed = trimmed.substring(0, trimmed.length() - 1).trim();
+        }
+        return trimmed;
     }
 
     private String nullToEmpty(String value) {
