@@ -122,6 +122,8 @@ public class StarRocksTableManager {
             throw new SilentException("StarRocks external catalog 创建失败:缺少 " + driverUrlConfigKey(dataSource.getType()));
         }
         String driverClass = driverClass(dataSource.getType());
+        log.info("创建/校验 StarRocks external catalog={}, jdbcUri={}, driverUrl={}, driverClass={}",
+                catalogName, jdbcUri, driverUrl, driverClass);
         String sql = "CREATE EXTERNAL CATALOG IF NOT EXISTS " + quote(catalogName)
                 + " PROPERTIES ("
                 + prop("type", "jdbc") + ", "
@@ -184,7 +186,7 @@ public class StarRocksTableManager {
 
     private String jdbcUri(DatasourceType type, DataSourceConfig config) {
         if (config.getJdbcUrl() != null && !config.getJdbcUrl().isBlank()) {
-            return config.getJdbcUrl();
+            return normalizeJdbcUrl(config.getJdbcUrl());
         }
         String database = config.getDatabase() == null ? "" : "/" + config.getDatabase();
         return switch (type) {
@@ -193,6 +195,34 @@ public class StarRocksTableManager {
             case CLICKHOUSE -> "jdbc:clickhouse://" + config.getHost() + ":" + config.getPort() + database;
             default -> throw new SilentException("暂不支持创建该数据源 catalog: " + type);
         };
+    }
+
+    /**
+     * 标准化 JDBC URL，去除重复的数据库路径段。
+     * <p>
+     * MariaDB Connector/J 3.x 严格校验 URL 格式，
+     * 不接受 {@code jdbc:mysql://host:port/db/db} 这种双路径格式，
+     * 而有些数据源配置中可能存储了带重复段的 URL。
+     * </p>
+     *
+     * @param jdbcUrl 原始 JDBC URL
+     * @return 标准化后的 URL（只保留第一个路径段作为数据库名）
+     */
+    private String normalizeJdbcUrl(String jdbcUrl) {
+        if (jdbcUrl == null || jdbcUrl.isBlank()) {
+            return jdbcUrl;
+        }
+        // jdbc:mysql://10.0.0.2:3306/cyan_dataman/cyan_dataman?useSSL=false
+        // → jdbc:mysql://10.0.0.2:3306/cyan_dataman?useSSL=false
+        String normalized = jdbcUrl.trim();
+        normalized = normalized.replaceAll(
+                "^(jdbc:[a-z]+://[^/]+/[^/?]+)(/[^/?]+)+(\\?.*)?$",
+                "$1$3"
+        );
+        if (!normalized.equals(jdbcUrl.trim())) {
+            log.info("标准化 JDBC URL, 原值={}, 标准化后={}", jdbcUrl, normalized);
+        }
+        return normalized;
     }
 
     private String driverUrl(DatasourceType type) {
